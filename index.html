@@ -53,7 +53,7 @@
 </head>
 <body class="text-gray-800 antialiased">
 
-  <div class="ad-placeholder mx-4 mt-2 max-w-5xl lg:mx-auto" aria-label="광고">AdSense 상단</div>
+  <div class="ad-placeholder hidden" aria-hidden="true"></div>
 
   <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-orange-100 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-3">
@@ -189,7 +189,7 @@
         </div>
 
         <aside class="space-y-5">
-          <div class="ad-placeholder" aria-label="광고">AdSense 사이드</div>
+          <div class="ad-placeholder hidden" aria-hidden="true"></div>
           <div class="bg-white rounded-2xl p-5 border border-orange-100">
             <h3 class="font-bold mb-3">🕐 최근 계산</h3>
             <div id="recent-list" class="space-y-2"></div>
@@ -276,22 +276,29 @@
     <section id="panel-portion" class="tab-panel" role="tabpanel">
       <article class="mb-6">
         <h2 class="text-2xl font-bold mb-2">소분·냉동 보관 계산기</h2>
-        <p class="text-gray-600">만든 양을 큐브 트레이(15ml/30ml)에 소분해 낭비를 줄이세요.</p>
+        <p class="text-gray-600">만든 양을 큐브 트레이(15ml/30ml)에 소분해 낭비를 줄이세요. <strong>큐브는 ml(부피)</strong> 기준이며, g는 밀도(약 1.03g/ml)로 환산합니다.</p>
       </article>
       <div class="bg-white rounded-2xl p-6 border border-mint/50 mb-6">
-        <div class="grid sm:grid-cols-3 gap-4 mb-4">
-          <label><span class="text-sm text-gray-600">총량 (g/ml)</span>
-            <input type="number" id="cube-total" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="250"></label>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <label><span class="text-sm text-gray-600">총량</span>
+            <input type="number" id="cube-total" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="300" min="1" step="any"></label>
+          <label><span class="text-sm text-gray-600">단위</span>
+            <select id="cube-unit" class="mt-1 w-full px-4 py-3 rounded-xl border">
+              <option value="ml" selected>ml (부피·큐브 기준)</option>
+              <option value="g">g (무게)</option>
+            </select></label>
           <label><span class="text-sm text-gray-600">큐브 용량</span>
             <select id="cube-size" class="mt-1 w-full px-4 py-3 rounded-xl border">
-              <option value="15">15ml (초기)</option><option value="30">30ml (후기)</option>
+              <option value="15">15ml (초기이유식)</option>
+              <option value="30" selected>30ml (중·후기이유식)</option>
             </select></label>
           <label><span class="text-sm text-gray-600">나눌 끼 수</span>
-            <input type="number" id="cube-meals" class="mt-1 w-full px-4 py-3 rounded-xl border" value="5" min="1"></label>
+            <input type="number" id="cube-meals" class="mt-1 w-full px-4 py-3 rounded-xl border" value="5" min="1" max="20" step="1">
+            <span class="text-xs text-gray-400">보관 소분은 보통 5끼 권장</span></label>
         </div>
         <div id="cube-result"></div>
       </div>
-      <div class="ad-placeholder mb-6" aria-label="광고">AdSense 본문</div>
+      <div class="ad-placeholder hidden" aria-hidden="true"></div>
     </section>
 
     <!-- ══ 프리셋 ══ -->
@@ -362,7 +369,7 @@
         <ol class="text-sm text-gray-700 space-y-2 list-decimal list-inside">
           <li><strong>기본 권장 (한국영양학회 2020):</strong> 0~6M 0.27mg · 7~12M 11mg · 1~3세 7mg/일</li>
           <li><strong>체중 보정:</strong> <code>max(기본권장, 체중kg × 1.0)</code></li>
-          <li><strong>1끼 목표:</strong> <code>(일일권장 × 45%) ÷ 3</code> — 이유식이 하루 철분의 약 45%를 담당한다고 가정</li>
+          <li><strong>1끼 목표:</strong> <code>(일일권장 × 45%) ÷ 월령별 끼 수</code> — 6M 1끼 · 7~11M 2끼 · 12M+ 3끼</li>
           <li><strong>흡수 추정:</strong> 헴철 25%, 비헴철 5%, 비타민C 동반 시 15%, 우유/칼슘 동반 시 50% 감소</li>
           <li><strong>영양 DB:</strong> 식약처 국가표준식품성분표 제10차 (100g 기준, 25종)</li>
           <li><strong>성장 백분위:</strong> P15 미만 시 영양사·소아과 상담 권장 (<a href="#growth" class="text-orange-600 underline" data-tab="growth">성장 탭</a>)</li>

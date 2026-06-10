@@ -15,6 +15,8 @@
 
   const UNITS = ['g', 'ml', '개', '작은술', '큰술'];
   const UNIT_TO_G = { g: 1, ml: 1, 개: 50, '작은술': 5, '큰술': 15 };
+  /** 묽은 죽~진죽 평균 밀도 (식약처·이유식 조리 기준 약 1.0~1.05 g/ml) */
+  const BABY_FOOD_DENSITY = 1.03;
 
   const PRESETS = [
     { id: 'beef-veg', name: '소고기야채죽', emoji: '🥩', ironStar: true, servings: 3, age: '9-11m',
@@ -44,12 +46,13 @@
   ];
 
   const FAQ_ITEMS = [
-    { q: '이유식 1끼에 철분은 얼마나 필요한가요?', a: '7개월 미만 0.27mg, 7~12개월 11mg, 13개월 이상 7mg을 기본으로 하고, 체중(kg)×1.0과 비교해 더 큰 값을 일일 권장으로 씁니다. 이유식 1끼 목표는 (일일권장 × 45%) ÷ 3끼입니다. 흡수율을 고려해 헴철·비타민C 식품을 포함하세요.' },
+    { q: '이유식 1끼에 철분은 얼마나 필요한가요?', a: '7개월 미만 0.27mg, 7~12개월 11mg, 13개월 이상 7mg을 기본으로 하고, 체중(kg)×1.0과 비교해 더 큰 값을 일일 권장으로 씁니다. 이유식 1끼 목표는 (일일권장 × 45%) ÷ 월령별 끼 수(6M 1끼·7~11M 2끼·12M+ 3끼)입니다. 흡수율을 고려해 헴철·비타민C 식품을 포함하세요.' },
     { q: '3인분 레시피를 1끼로 줄이려면?', a: '원래 인분 3, 목표 인분 1로 설정하면 재료·영양소가 자동으로 1/3 계산됩니다.' },
     { q: '시금치만으로 철분이 충분한가요?', a: '시금치는 비헴철이라 흡수율이 3~8%에 불과합니다. 소고기·달걀노른자 등 헴철과 비타민C 과일을 함께 제공하세요.' },
     { q: '우유와 이유식을 같이 먹여도 되나요?', a: '칼슘·우유 단백이 철분 흡수를 저해합니다. 철분 식품 섭취 후 1~2시간 간격을 두는 것이 좋습니다.' },
     { q: '성장 백분위수는 어떻게 해석하나요?', a: 'P50은 같은 월령 평균, P3~P15는 저체중, P85~P97은 과체중 범위로 참고합니다. 정확한 판정은 소아과 성장검진이 필요합니다.' },
     { q: 'DB에 없는 재료는 어떻게 하나요?', a: '재료 행의 "직접입력" 버튼으로 영양값을 수동 입력할 수 있습니다. 식약처 식품영양성분표를 참고하세요.' },
+    { q: '소분 계산기에서 300ml와 300g/끼는 같은가요?', a: '아닙니다. 총량 300ml를 5끼로 나누면 1끼 약 60ml(≈62g)입니다. 300g/끼는 나눌 끼 수가 1일 때만 나오며, 전량을 한 끼로 먹는 경우입니다. 큐브는 ml 기준, 영양 계산은 g 기준으로 각각 표시합니다.' },
   ];
 
   const STORAGE_KEY = 'babyMealCalc_v2';
@@ -109,6 +112,14 @@
 
   function toGrams(amount, unit) {
     return amount * (UNIT_TO_G[unit] || 1);
+  }
+
+  function toMlFromPortion(total, unit) {
+    return unit === 'ml' ? total : total / BABY_FOOD_DENSITY;
+  }
+
+  function toGFromPortion(total, unit) {
+    return unit === 'g' ? total : total * BABY_FOOD_DENSITY;
   }
 
   // ─── DB 매칭 (fuzzy) ─────────────────────────────────────
@@ -215,7 +226,7 @@
    * 기준: 한국영양학회 2020 (0~6M 0.27 / 7~12M 11 / 1~3Y 7 mg)
    * 체중 보정: max(기본, 체중kg×1.0) · 1끼 = (일일×45%)÷3
    */
-  function calculateIronNeeds(ageMonths, weightKg) {
+  function calculateIronNeeds(ageMonths, weightKg, mealsPerDay) {
     const ref = typeof IRON_DRI_REFERENCE !== 'undefined' ? IRON_DRI_REFERENCE : null;
     let dailyIron = ageMonths < 7 ? 0.27 : (ageMonths <= 12 ? 11 : 7);
     if (ref) {
@@ -223,11 +234,12 @@
     }
     dailyIron = Math.max(dailyIron, weightKg * 1.0);
     const ratio = ref ? ref.mealRatio : 0.45;
-    const meals = ref ? ref.mealsPerDay : 3;
+    const meals = Math.max(mealsPerDay || (ref ? ref.mealsPerDay : 3), 1);
     const oneMealIron = (dailyIron * ratio) / meals;
     return {
       dailyIron: Math.round(dailyIron * 100) / 100,
       oneMealIron: Math.round(oneMealIron * 100) / 100,
+      mealsPerDay: meals,
     };
   }
 
@@ -238,7 +250,7 @@
 
   function getIronNeedsForAge(age, weightKg) {
     const w = weightKg > 0 ? weightKg : age.refWeightKg;
-    return calculateIronNeeds(age.months, w);
+    return calculateIronNeeds(age.months, w, age.mealsPerDay);
   }
 
   function getRecommended(age, wf) {
@@ -624,12 +636,15 @@
     const hasVitC = nutItems.some((it) => it.vitC);
     const hasInhibitor = nutItems.some((it) => it.inhibitor);
     const absorbedIron = estimateAbsorbedIron(nutItems, hasVitC, hasInhibitor);
+    const totalGrams = nutItems.reduce((s, i) => s + i.grams, 0);
+    const totalMl = totalGrams / BABY_FOOD_DENSITY;
 
     els.resultSummary.innerHTML = `
       <div class="grid sm:grid-cols-3 gap-3 text-sm mb-4">
         <div class="bg-white rounded-xl p-4 border border-orange-100">
           <span class="text-gray-500">1끼 총량(추정)</span>
-          <p class="text-xl font-bold text-orange-600 mt-1">${formatPretty(nutItems.reduce((s,i)=>s+i.grams,0))}g</p>
+          <p class="text-xl font-bold text-orange-600 mt-1" data-meal-grams="${totalGrams}">${formatPretty(totalGrams)}g</p>
+          <p class="text-xs text-gray-400 mt-1">약 ${formatPretty(totalMl)}ml · 밀도 ${BABY_FOOD_DENSITY}g/ml</p>
         </div>
         <div class="bg-white rounded-xl p-4 border border-orange-100">
           <span class="text-gray-500">${age.label} 권장 1끼</span>
@@ -669,7 +684,7 @@
             </div>
             <div>
               <p class="text-gray-600">기본 일일 권장: ${baseIron}mg → 체중 보정: <strong>${ironNeeds.dailyIron}mg/일</strong></p>
-              <p class="text-gray-600">이유식 1끼 목표: <strong class="text-red-700">${ironNeeds.oneMealIron}mg</strong> <span class="text-xs">(일일 × 45% ÷ 3끼)</span></p>
+              <p class="text-gray-600">이유식 1끼 목표: <strong class="text-red-700">${ironNeeds.oneMealIron}mg</strong> <span class="text-xs">(일일 × 45% ÷ ${ironNeeds.mealsPerDay}끼)</span></p>
               ${hasVitC ? '<p class="mt-2 text-green-700 font-medium">✓ 비타민C 식품 포함 → 비헴철 흡수율 ↑</p>' : ''}
               ${hasInhibitor ? '<p class="mt-1 text-amber-700 font-medium">⚠ 칼슘/우유 성분 포함 → 철 흡수 저해 가능</p>' : ''}
             </div>
@@ -700,6 +715,7 @@
       age: age.label,
       weight: getBabyWeightKg(age),
       orig, target, totals, rec, absorbedIron, ironPct, absPct, grade: grade.label,
+      totalGrams, totalMl,
       items: nutItems.map((it) => ({ name: it.name, grams: it.grams, iron: it.iron })),
     };
 
@@ -776,22 +792,71 @@
 
   function calculateCube() {
     const total = parseNum($('#cube-total')?.value);
+    const unit = $('#cube-unit')?.value || 'ml';
     const size = parseInt($('#cube-size')?.value, 10) || 15;
     const meals = Math.max(parseInt($('#cube-meals')?.value, 10) || 5, 1);
     if (!els.cubeResult) return;
-    if (total <= 0) { els.cubeResult.innerHTML = '<p class="text-gray-400">총량을 입력하세요.</p>'; return; }
-    const cubes = Math.ceil(total / size);
+    if (total <= 0) {
+      els.cubeResult.innerHTML = '<p class="text-gray-400">총량을 입력하세요.</p>';
+      return;
+    }
+
+    const totalMl = toMlFromPortion(total, unit);
+    const totalG = toGFromPortion(total, unit);
+    const cubes = Math.ceil(totalMl / size);
+    const perMealMl = totalMl / meals;
+    const perMealG = totalG / meals;
+    const cubesPerMeal = perMealMl / size;
+    const age = getAgeGuide($('#age-select')?.value || $('#growth-age')?.value);
+    const recVol = Math.round(age.perMeal * getWeightFactor());
+
+    const warnings = [];
+    if (meals === 1) {
+      warnings.push('나눌 끼 수가 <strong>1</strong>이면 전량이 1끼로 계산됩니다. 냉동 소분은 보통 <strong>5끼</strong> 이상으로 나눕니다.');
+    }
+    if (perMealMl > recVol * 1.35) {
+      warnings.push(`1끼 <strong>${formatPretty(perMealMl)}ml</strong>는 ${age.label} 권장 1끼(약 ${recVol}ml)보다 많습니다.`);
+    }
+    if (cubesPerMeal < 0.5) {
+      warnings.push('1끼당 큐브가 0.5개 미만입니다. 큐브 용량을 줄이거나 총량을 확인하세요.');
+    }
+
+    const perMealMain = unit === 'ml'
+      ? `${formatPretty(perMealMl)}<span class="text-lg text-gray-500">ml/끼</span>`
+      : `${formatPretty(perMealG)}<span class="text-lg text-gray-500">g/끼</span>`;
+    const perMealSub = unit === 'ml'
+      ? `약 ${formatPretty(perMealG)}g`
+      : `약 ${formatPretty(perMealMl)}ml`;
+
     els.cubeResult.innerHTML = `
-      <div class="grid sm:grid-cols-2 gap-4">
-        <div class="bg-white rounded-xl p-5 border border-mint/50"><p class="text-gray-500 text-sm">큐브 개수</p>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl p-5 border border-mint/50">
+          <p class="text-gray-500 text-sm">총 큐브 개수</p>
           <p class="text-3xl font-bold text-teal-600">${cubes}<span class="text-lg text-gray-500">개</span></p>
-          <p class="text-sm text-gray-500 mt-1">${size}ml 기준</p></div>
-        <div class="bg-white rounded-xl p-5 border border-mint/50"><p class="text-gray-500 text-sm">${meals}끼 분할</p>
-          <p class="text-3xl font-bold text-teal-600">${formatPretty(total/meals)}<span class="text-lg text-gray-500">g/끼</span></p>
-          <p class="text-sm text-gray-500 mt-1">큐브 ${formatPretty(total/meals/size)}개/끼</p></div>
+          <p class="text-sm text-gray-500 mt-1">${size}ml 큐브 · 총 ${formatPretty(totalMl)}ml</p>
+          <p class="text-xs text-gray-400">(약 ${formatPretty(totalG)}g)</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-mint/50">
+          <p class="text-gray-500 text-sm">${meals}끼 분할 · 1끼 분량</p>
+          <p class="text-3xl font-bold text-teal-600">${perMealMain}</p>
+          <p class="text-sm text-gray-500 mt-1">${perMealSub} · 권장 ${recVol}ml/끼</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-mint/50">
+          <p class="text-gray-500 text-sm">1끼당 큐브</p>
+          <p class="text-3xl font-bold text-teal-600">${formatPretty(cubesPerMeal)}<span class="text-lg text-gray-500">개/끼</span></p>
+          <p class="text-sm text-gray-500 mt-1">${formatPretty(perMealMl)}ml = ${size}ml × ${formatPretty(cubesPerMeal)}</p>
+        </div>
       </div>
-      <div class="mt-4 p-4 bg-amber-50 rounded-xl text-sm text-amber-900 border border-amber-100">
-        <strong>보관:</strong> 냉장 48~72시간 · 냉동 2주 · 해동 후 재냉동 금지 (질병관리청)</div>`;
+      ${warnings.length ? `<div class="mt-4 p-4 bg-amber-50 rounded-xl text-sm text-amber-900 border border-amber-200 space-y-1">
+        ${warnings.map((w) => `<p>⚠ ${w}</p>`).join('')}
+      </div>` : ''}
+      <div class="mt-4 p-4 bg-mint/20 rounded-xl text-sm text-teal-900 border border-mint/40">
+        <strong>계산 기준:</strong> 큐브는 <strong>ml(부피)</strong> 기준 · 이유식 밀도 약 <strong>${BABY_FOOD_DENSITY}g/ml</strong> 적용
+        <br>예) 총 300ml ÷ 5끼 = <strong>60ml/끼</strong> (약 62g) · 30ml 큐브면 <strong>2개/끼</strong>
+      </div>
+      <div class="mt-3 p-4 bg-amber-50 rounded-xl text-sm text-amber-900 border border-amber-100">
+        <strong>보관:</strong> 냉장 48~72시간 · 냉동 2주 · 해동 후 재냉동 금지 (질병관리청)
+      </div>`;
   }
 
   // ─── 프리셋 · FAQ · 철분가이드 ───────────────────────────
@@ -972,6 +1037,10 @@
       growthWeight: parseNum($('#growth-weight')?.value),
       growthHeight: parseNum($('#growth-height')?.value),
       growthGender: $('#growth-gender')?.value,
+      cubeTotal: parseNum($('#cube-total')?.value),
+      cubeUnit: $('#cube-unit')?.value,
+      cubeSize: $('#cube-size')?.value,
+      cubeMeals: parseNum($('#cube-meals')?.value),
       ingredients: getIngredients(),
     };
     try { localStorage.setItem(FORM_STATE_KEY, JSON.stringify(state)); } catch (_) {}
@@ -990,6 +1059,10 @@
       if (state.growthWeight) $('#growth-weight').value = state.growthWeight;
       if (state.growthHeight) $('#growth-height').value = state.growthHeight;
       if (state.growthGender) $('#growth-gender').value = state.growthGender;
+      if (state.cubeTotal) $('#cube-total').value = state.cubeTotal;
+      if (state.cubeUnit) $('#cube-unit').value = state.cubeUnit;
+      if (state.cubeSize) $('#cube-size').value = state.cubeSize;
+      if (state.cubeMeals) $('#cube-meals').value = state.cubeMeals;
       if (state.ingredients?.length) setIngredients(state.ingredients);
       return true;
     } catch (_) { return false; }
@@ -1126,7 +1199,7 @@
       const el = $(id);
       if (el) { el.addEventListener('input', updateGrowth); el.addEventListener('change', updateGrowth); }
     });
-    ['#cube-total','#cube-size','#cube-meals'].forEach((id) => {
+    ['#cube-total','#cube-unit','#cube-size','#cube-meals'].forEach((id) => {
       const el = $(id);
       if (el) { el.addEventListener('input', calculateCube); el.addEventListener('change', calculateCube); }
     });
@@ -1174,10 +1247,18 @@
     $('#copy-result-btn')?.addEventListener('click', copyResult);
     $('#print-result-btn')?.addEventListener('click', printResult);
     $('#cube-btn')?.addEventListener('click', () => {
-      const t = els.resultSummary?.querySelector('.text-orange-600');
-      if (t && $('#cube-total')) $('#cube-total').value = parseNum(t.textContent);
+      const gramsEl = els.resultSummary?.querySelector('[data-meal-grams]');
+      const grams = gramsEl
+        ? parseNum(gramsEl.dataset.mealGrams || gramsEl.textContent)
+        : (lastCalcSnapshot?.totalGrams || 0);
+      if ($('#cube-total') && grams > 0) {
+        $('#cube-total').value = formatPretty(grams * 5);
+        $('#cube-unit').value = 'g';
+      }
+      $('#cube-meals').value = 5;
       switchTab('portion');
       calculateCube();
+      saveFormState();
     });
     $('#modal-save')?.addEventListener('click', saveCustomNutrient);
     $('#modal-cancel')?.addEventListener('click', closeNutrientModal);
