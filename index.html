@@ -23,10 +23,14 @@
   <meta property="og:url" content="https://agihanki-calculator.pages.dev/">
   <meta property="og:locale" content="ko_KR">
   <meta property="og:site_name" content="아기한끼 계산기">
+  <meta property="og:image" content="https://agihanki-calculator.pages.dev/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="아기한끼 계산기 BabyMeal">
   <meta name="twitter:description" content="이유식 분량·철분·영양 계산기">
+  <meta name="twitter:image" content="https://agihanki-calculator.pages.dev/og-image.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -50,6 +54,17 @@
     {"@type":"HowToStep","name":"결과 확인","text":"변환 분량, 철분, 탄단지 차트를 확인합니다."}
   ]}
   </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"이유식 1끼에 철분은 얼마나 필요한가요?","acceptedAnswer":{"@type":"Answer","text":"7개월 미만 0.27mg, 7~12개월 11mg, 13개월 이상 7mg을 기본으로 하고, 체중(kg)×1.0과 비교해 더 큰 값을 일일 권장으로 씁니다. 이유식 1끼 목표는 (일일권장 × 45%) ÷ 월령별 끼 수(6M 1끼·7~11M 2끼·12M+ 3끼)입니다. 흡수율을 고려해 헴철·비타민C 식품을 포함하세요."}},
+    {"@type":"Question","name":"3인분 레시피를 1끼로 줄이려면?","acceptedAnswer":{"@type":"Answer","text":"원래 인분 3, 목표 인분 1로 설정하면 재료·영양소가 자동으로 1/3 계산됩니다."}},
+    {"@type":"Question","name":"시금치만으로 철분이 충분한가요?","acceptedAnswer":{"@type":"Answer","text":"시금치는 비헴철이라 흡수율이 3~8%에 불과합니다. 소고기·달걀노른자 등 헴철과 비타민C 과일을 함께 제공하세요."}},
+    {"@type":"Question","name":"우유와 이유식을 같이 먹여도 되나요?","acceptedAnswer":{"@type":"Answer","text":"칼슘·우유 단백이 철분 흡수를 저해합니다. 철분 식품 섭취 후 1~2시간 간격을 두는 것이 좋습니다."}},
+    {"@type":"Question","name":"성장 백분위수는 어떻게 해석하나요?","acceptedAnswer":{"@type":"Answer","text":"P50은 같은 월령 평균, P3~P15는 저체중, P85~P97은 과체중 범위로 참고합니다. 정확한 판정은 소아과 성장검진이 필요합니다."}},
+    {"@type":"Question","name":"DB에 없는 재료는 어떻게 하나요?","acceptedAnswer":{"@type":"Answer","text":"재료 행의 \"직접입력\" 버튼으로 영양값을 수동 입력할 수 있습니다. 식약처 식품영양성분표를 참고하세요."}},
+    {"@type":"Question","name":"소분 계산기에서 300ml와 300g/끼는 같은가요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 총량 300ml를 5끼로 나누면 1끼 약 60ml(≈62g)입니다. 300g/끼는 나눌 끼 수가 1일 때만 나오며, 전량을 한 끼로 먹는 경우입니다. 큐브는 ml 기준, 영양 계산은 g 기준으로 각각 표시합니다."}}
+  ]}
+  </script>
 </head>
 <body class="text-gray-800 antialiased">
 
@@ -58,7 +73,7 @@
   <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-orange-100 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-3">
       <div class="flex items-center justify-between">
-        <a href="#calculator" class="flex items-center gap-2">
+        <a href="#calculator" class="flex items-center gap-2" data-tab="calculator">
           <span class="text-3xl">🍼</span>
           <div>
             <p class="text-xs text-orange-500 font-semibold">BabyMeal Calculator</p>
@@ -383,7 +398,57 @@
         <h2 class="text-2xl font-bold mb-2">자주 묻는 질문 (FAQ)</h2>
         <p class="text-gray-600">YMYL 건강 정보 — 아래 내용은 교육 목적이며 의료 상담을 대체하지 않습니다.</p>
       </article>
-      <div id="faq-list"></div>
+      <div id="faq-list">
+        <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
+          <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">이유식 1끼에 철분은 얼마나 필요한가요?<span class="text-orange-400">+</span></summary>
+          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">7개월 미만 0.27mg, 7~12개월 11mg, 13개월 이상 7mg을 기본으로 하고, 체중(kg)×1.0과 비교해 더 큰 값을 일일 권장으로 씁니다. 이유식 1끼 목표는 (일일권장 × 45%) ÷ 월령별 끼 수(6M 1끼·7~11M 2끼·12M+ 3끼)입니다. 흡수율을 고려해 헴철·비타민C 식품을 포함하세요.</div>
+        </details>
+        <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
+          <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">3인분 레시피를 1끼로 줄이려면?<span class="text-orange-400">+</span></summary>
+          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">원래 인분 3, 목표 인분 1로 설정하면 재료·영양소가 자동으로 1/3 계산됩니다.</div>
+        </details>
+        <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
+          <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">시금치만으로 철분이 충분한가요?<span class="text-orange-400">+</span></summary>
+          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">시금치는 비헴철이라 흡수율이 3~8%에 불과합니다. 소고기·달걀노른자 등 헴철과 비타민C 과일을 함께 제공하세요.</div>
+        </details>
+        <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
+          <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">우유와 이유식을 같이 먹여도 되나요?<span class="text-orange-400">+</span></summary>
+          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">칼슘·우유 단백이 철분 흡수를 저해합니다. 철분 식품 섭취 후 1~2시간 간격을 두는 것이 좋습니다.</div>
+        </details>
+        <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
+          <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">성장 백분위수는 어떻게 해석하나요?<span class="text-orange-400">+</span></summary>
+          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">P50은 같은 월령 평균, P3~P15는 저체중, P85~P97은 과체중 범위로 참고합니다. 정확한 판정은 소아과 성장검진이 필요합니다.</div>
+        </details>
+        <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
+          <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">DB에 없는 재료는 어떻게 하나요?<span class="text-orange-400">+</span></summary>
+          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">재료 행의 "직접입력" 버튼으로 영양값을 수동 입력할 수 있습니다. 식약처 식품영양성분표를 참고하세요.</div>
+        </details>
+        <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
+          <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">소분 계산기에서 300ml와 300g/끼는 같은가요?<span class="text-orange-400">+</span></summary>
+          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">아닙니다. 총량 300ml를 5끼로 나누면 1끼 약 60ml(≈62g)입니다. 300g/끼는 나눌 끼 수가 1일 때만 나오며, 전량을 한 끼로 먹는 경우입니다. 큐브는 ml 기준, 영양 계산은 g 기준으로 각각 표시합니다.</div>
+        </details>
+      </div>
+
+      <div class="mt-8">
+        <h3 class="font-bold text-lg mb-3">📚 더 자세한 가이드</h3>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <a href="guide/iron.html" class="block bg-white rounded-2xl p-5 border border-red-100 hover:border-red-300 transition shadow-sm">
+            <span class="text-2xl">🩸</span>
+            <p class="font-bold mt-2">아기 철분 가이드</p>
+            <p class="text-sm text-gray-500 mt-1">권장량 공식 · 흡수율 높이는 법</p>
+          </a>
+          <a href="guide/cube.html" class="block bg-white rounded-2xl p-5 border border-mint/60 hover:border-teal-300 transition shadow-sm">
+            <span class="text-2xl">🧊</span>
+            <p class="font-bold mt-2">큐브 소분·냉동 가이드</p>
+            <p class="text-sm text-gray-500 mt-1">ml/g 환산 · 보관 기한</p>
+          </a>
+          <a href="guide/portion.html" class="block bg-white rounded-2xl p-5 border border-orange-100 hover:border-orange-300 transition shadow-sm">
+            <span class="text-2xl">🍚</span>
+            <p class="font-bold mt-2">월령별 분량 가이드</p>
+            <p class="text-sm text-gray-500 mt-1">6~24개월 1끼 분량·농도</p>
+          </a>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -421,7 +486,7 @@
           아기의 건강·영양·알레르기 관련 결정은 반드시 <strong>소아과 전문의 또는 공인 영양사</strong>와 상담하세요.
         </p>
       </div>
-      <div class="grid sm:grid-cols-2 gap-6 text-sm text-gray-600 mb-6">
+      <div class="grid sm:grid-cols-3 gap-6 text-sm text-gray-600 mb-6">
         <div>
           <h3 class="font-bold mb-2">출처</h3>
           <ul class="space-y-1 text-xs sm:text-sm">
@@ -431,17 +496,43 @@
           </ul>
         </div>
         <div>
-          <h3 class="font-bold mb-2">배포</h3>
-          <p class="text-xs sm:text-sm">Cloudflare Pages 정적 배포 ·
-            <a href="https://github.com/hhong0218/agihanki-calculator" class="text-orange-600 hover:underline" target="_blank" rel="noopener">GitHub</a>
-          </p>
+          <h3 class="font-bold mb-2">가이드</h3>
+          <ul class="space-y-1 text-xs sm:text-sm">
+            <li>· <a href="guide/iron.html" class="text-orange-600 hover:underline">아기 철분 가이드</a></li>
+            <li>· <a href="guide/cube.html" class="text-orange-600 hover:underline">큐브 소분·냉동 보관</a></li>
+            <li>· <a href="guide/portion.html" class="text-orange-600 hover:underline">월령별 이유식 분량</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-bold mb-2">정보</h3>
+          <ul class="space-y-1 text-xs sm:text-sm">
+            <li>· <a href="privacy.html" class="text-orange-600 hover:underline">개인정보처리방침</a></li>
+            <li>· <a href="terms.html" class="text-orange-600 hover:underline">이용약관</a></li>
+            <li>· 문의: <a href="mailto:hhong0218@gmail.com" class="text-orange-600 hover:underline">hhong0218@gmail.com</a></li>
+            <li>· <a href="https://github.com/hhong0218/agihanki-calculator" class="text-orange-600 hover:underline" target="_blank" rel="noopener">GitHub</a></li>
+          </ul>
         </div>
       </div>
-      <p class="text-center text-xs text-gray-500">© 2026 아기한끼 계산기 (BabyMeal Calculator)</p>
+      <nav class="border-t border-orange-200 pt-5 mb-5" aria-label="제작자의 다른 무료 도구">
+        <p class="text-xs font-semibold text-gray-500 mb-2 text-center">함께 쓰면 좋은 무료 도구</p>
+        <ul class="flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs sm:text-sm">
+          <li><a href="https://qr-maker-8q3.pages.dev/" class="text-gray-500 hover:text-orange-600 hover:underline">QR코드 만들기</a></li>
+          <li><a href="https://diagram-maker.pages.dev/" class="text-gray-500 hover:text-orange-600 hover:underline">도식화 메이커</a></li>
+          <li><a href="https://pixel-art-maker-dsq.pages.dev/" class="text-gray-500 hover:text-orange-600 hover:underline">픽셀아트 메이커</a></li>
+          <li><a href="https://resume-maker-4u5.pages.dev/" class="text-gray-500 hover:text-orange-600 hover:underline">한국이력서</a></li>
+          <li><a href="https://stockcoincalc.pages.dev/" class="text-gray-500 hover:text-orange-600 hover:underline">투자계산기</a></li>
+        </ul>
+      </nav>
+      <p class="text-center text-xs text-gray-500">© 2026 아기한끼 계산기 (BabyMeal Calculator) · 입력 데이터는 서버로 전송되지 않습니다</p>
     </div>
   </footer>
 
   <script src="js/nutrient-db.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+    }
+  </script>
 </body>
 </html>

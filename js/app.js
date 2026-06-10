@@ -45,16 +45,6 @@
       ingredients: [{ db: '멥쌀', amount: 30 }, { db: '애호박', amount: 40 }, { db: '당근', amount: 30 }] },
   ];
 
-  const FAQ_ITEMS = [
-    { q: '이유식 1끼에 철분은 얼마나 필요한가요?', a: '7개월 미만 0.27mg, 7~12개월 11mg, 13개월 이상 7mg을 기본으로 하고, 체중(kg)×1.0과 비교해 더 큰 값을 일일 권장으로 씁니다. 이유식 1끼 목표는 (일일권장 × 45%) ÷ 월령별 끼 수(6M 1끼·7~11M 2끼·12M+ 3끼)입니다. 흡수율을 고려해 헴철·비타민C 식품을 포함하세요.' },
-    { q: '3인분 레시피를 1끼로 줄이려면?', a: '원래 인분 3, 목표 인분 1로 설정하면 재료·영양소가 자동으로 1/3 계산됩니다.' },
-    { q: '시금치만으로 철분이 충분한가요?', a: '시금치는 비헴철이라 흡수율이 3~8%에 불과합니다. 소고기·달걀노른자 등 헴철과 비타민C 과일을 함께 제공하세요.' },
-    { q: '우유와 이유식을 같이 먹여도 되나요?', a: '칼슘·우유 단백이 철분 흡수를 저해합니다. 철분 식품 섭취 후 1~2시간 간격을 두는 것이 좋습니다.' },
-    { q: '성장 백분위수는 어떻게 해석하나요?', a: 'P50은 같은 월령 평균, P3~P15는 저체중, P85~P97은 과체중 범위로 참고합니다. 정확한 판정은 소아과 성장검진이 필요합니다.' },
-    { q: 'DB에 없는 재료는 어떻게 하나요?', a: '재료 행의 "직접입력" 버튼으로 영양값을 수동 입력할 수 있습니다. 식약처 식품영양성분표를 참고하세요.' },
-    { q: '소분 계산기에서 300ml와 300g/끼는 같은가요?', a: '아닙니다. 총량 300ml를 5끼로 나누면 1끼 약 60ml(≈62g)입니다. 300g/끼는 나눌 끼 수가 1일 때만 나오며, 전량을 한 끼로 먹는 경우입니다. 큐브는 ml 기준, 영양 계산은 g 기준으로 각각 표시합니다.' },
-  ];
-
   const STORAGE_KEY = 'babyMealCalc_v2';
   const CUSTOM_NUTRIENT_KEY = 'babyMealCustomNutrients';
   const FORM_STATE_KEY = 'babyMealFormState';
@@ -337,7 +327,6 @@
     cubeResult: $('#cube-result'),
     presetGrid: $('#preset-grid'),
     allergyList: $('#allergy-list'),
-    faqList: $('#faq-list'),
     ironGuideTable: $('#iron-guide-table'),
     ironCombosGood: $('#iron-combos-good'),
     ironCombosBad: $('#iron-combos-bad'),
@@ -722,7 +711,6 @@
     renderMacroChart(totals.protein, totals.carbs, totals.fat);
     renderProgressBars(totals, rec);
     els.resultSection?.classList.remove('hidden');
-    saveRecent();
     saveFormState();
   }
 
@@ -889,6 +877,7 @@
         setIngredients(p.ingredients.map((i) => ({ db: i.db, amount: i.amount, unit: i.unit || 'g', name: i.db.replace(/_/g,' ') })));
         switchTab('calculator');
         calculate();
+        saveRecent();
       });
     });
   }
@@ -994,6 +983,7 @@
         setIngredients(p.ingredients.map((i) => ({ db: i.db, amount: i.amount, unit: i.unit || 'g' })));
         switchTab('calculator');
         calculate();
+        saveRecent();
       });
     });
 
@@ -1015,14 +1005,7 @@
     renderIronMealPlan(activeMealPlanId);
   }
 
-  function renderFaq() {
-    if (!els.faqList) return;
-    els.faqList.innerHTML = FAQ_ITEMS.map((item) =>
-      `<details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
-        <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">${escapeHtml(item.q)}<span class="text-orange-400">+</span></summary>
-        <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">${escapeHtml(item.a)}</div>
-      </details>`).join('');
-  }
+  // FAQ는 SEO를 위해 index.html에 정적 렌더 (FAQPage JSON-LD 포함)
 
   // ─── localStorage · 폼 상태 · 복사/인쇄 ─────────────────
 
@@ -1123,9 +1106,13 @@
     };
     let list = [];
     try { list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (_) {}
-    list.unshift(entry);
+    const sameAsTop = list[0] && list[0].name === entry.name
+      && list[0].orig === entry.orig && list[0].target === entry.target
+      && JSON.stringify(list[0].ingredients) === JSON.stringify(entry.ingredients);
+    if (sameAsTop) list[0] = entry;
+    else list.unshift(entry);
     list = list.slice(0, 8);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (_) {}
     renderRecent();
   }
 
@@ -1205,16 +1192,6 @@
     });
   }
 
-  function injectFaqSchema() {
-    const s = document.createElement('script');
-    s.type = 'application/ld+json';
-    s.textContent = JSON.stringify({
-      '@context': 'https://schema.org', '@type': 'FAQPage',
-      mainEntity: FAQ_ITEMS.map((i) => ({ '@type': 'Question', name: i.q, acceptedAnswer: { '@type': 'Answer', text: i.a } })),
-    });
-    document.head.appendChild(s);
-  }
-
   // ─── init ─────────────────────────────────────────────────
 
   function init() {
@@ -1226,9 +1203,7 @@
     renderIronGuide();
     renderGrowthChartTable();
     initIronMealPlans();
-    renderFaq();
     renderRecent();
-    injectFaqSchema();
 
     const restored = loadFormState();
     if (!restored) {
@@ -1243,7 +1218,7 @@
     }
 
     $('#add-ingredient')?.addEventListener('click', () => els.ingredientBody.appendChild(createIngredientRow()));
-    $('#calc-btn')?.addEventListener('click', calculate);
+    $('#calc-btn')?.addEventListener('click', () => { calculate(); saveRecent(); });
     $('#copy-result-btn')?.addEventListener('click', copyResult);
     $('#print-result-btn')?.addEventListener('click', printResult);
     $('#cube-btn')?.addEventListener('click', () => {
