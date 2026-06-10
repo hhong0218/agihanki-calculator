@@ -1,0 +1,1014 @@
+/**
+ * 아기한끼 계산기 (BabyMeal Calculator)
+ * 분량 · 영양 · 철분 · 성장곡선
+ */
+(function () {
+  'use strict';
+
+  const AGE_GUIDE = [
+    { id: '6m', label: '6개월', months: 6, perMeal: 70, mealsPerDay: 1, kcalDaily: 200, kcalPerMeal: 100, ironDaily: 11, proteinDaily: 11, consistency: '묽은 미음', refWeightKg: 7.3 },
+    { id: '7-8m', label: '7~8개월', months: 7, perMeal: 90, mealsPerDay: 2, kcalDaily: 350, kcalPerMeal: 120, ironDaily: 11, proteinDaily: 13, consistency: '미음~죽', refWeightKg: 8.0 },
+    { id: '9-11m', label: '9~11개월', months: 10, perMeal: 125, mealsPerDay: 2, kcalDaily: 500, kcalPerMeal: 180, ironDaily: 11, proteinDaily: 14, consistency: '죽~진죽', refWeightKg: 8.9 },
+    { id: '12-18m', label: '12~18개월', months: 15, perMeal: 175, mealsPerDay: 3, kcalDaily: 900, kcalPerMeal: 250, ironDaily: 7, proteinDaily: 15, consistency: '진죽~무른밥', refWeightKg: 9.5 },
+    { id: '19-24m', label: '19~24개월', months: 21, perMeal: 225, mealsPerDay: 3, kcalDaily: 1100, kcalPerMeal: 300, ironDaily: 7, proteinDaily: 16, consistency: '무른밥·반찬', refWeightKg: 10.0 },
+  ];
+
+  const UNITS = ['g', 'ml', '개', '작은술', '큰술'];
+  const UNIT_TO_G = { g: 1, ml: 1, 개: 50, '작은술': 5, '큰술': 15 };
+
+  const PRESETS = [
+    { id: 'beef-veg', name: '소고기야채죽', emoji: '🥩', ironStar: true, servings: 3, age: '9-11m',
+      ingredients: [{ db: '멥쌀', amount: 60 }, { db: '소고기_다짐육', amount: 45 }, { db: '당근', amount: 30 }, { db: '애호박', amount: 30 }] },
+    { id: 'chicken-broccoli', name: '닭가슴살 브로콜리죽', emoji: '🍗', ironStar: true, servings: 3, age: '9-11m',
+      ingredients: [{ db: '멥쌀', amount: 50 }, { db: '닭가슴살', amount: 40 }, { db: '브로콜리', amount: 40 }] },
+    { id: 'pumpkin', name: '단호박죽', emoji: '🎃', servings: 3, age: '6m',
+      ingredients: [{ db: '멥쌀', amount: 30 }, { db: '단호박_찐', amount: 80 }] },
+    { id: 'tofu-spinach', name: '두부시금치죽', emoji: '🥬', ironStar: true, servings: 3, age: '9-11m',
+      ingredients: [{ db: '멥쌀', amount: 40 }, { db: '두부', amount: 50 }, { db: '시금치', amount: 25 }] },
+    { id: 'oat-banana-kiwi', name: '오트밀바나나키위', emoji: '🍌', ironStar: true, servings: 3, age: '7-8m',
+      ingredients: [{ db: '오트밀', amount: 30 }, { db: '바나나', amount: 50 }, { db: '키위', amount: 30 }] },
+    { id: 'salmon-broccoli', name: '연어브로콜리', emoji: '🐟', servings: 3, age: '9-11m',
+      ingredients: [{ db: '연어', amount: 40 }, { db: '브로콜리', amount: 40 }, { db: '감자', amount: 60 }] },
+    { id: 'sweet-potato', name: '고구마죽', emoji: '🍠', servings: 3, age: '6m',
+      ingredients: [{ db: '멥쌀', amount: 25 }, { db: '고구마_찐', amount: 80 }] },
+    { id: 'egg-yolk-rice', name: '달걀노른자죽', emoji: '🥚', ironStar: true, servings: 3, age: '7-8m',
+      ingredients: [{ db: '멥쌀', amount: 40 }, { db: '달걀노른자', amount: 18 }] },
+    { id: 'seaweed-rice', name: '미역죽', emoji: '🌊', ironStar: true, servings: 3, age: '12-18m',
+      ingredients: [{ db: '멥쌀', amount: 50 }, { db: '미역', amount: 5 }, { db: '소고기_다짐육', amount: 30 }] },
+    { id: 'apple-pear', name: '사과배퓨레', emoji: '🍎', servings: 3, age: '6m',
+      ingredients: [{ db: '사과', amount: 80 }, { db: '바나나', amount: 40 }] },
+    { id: 'bean-sprout', name: '콩나물밥죽', emoji: '🌱', servings: 3, age: '12-18m',
+      ingredients: [{ db: '멥쌀', amount: 50 }, { db: '콩나물', amount: 40 }] },
+    { id: 'zucchini-carrot', name: '애호박당근죽', emoji: '🥕', servings: 3, age: '6m',
+      ingredients: [{ db: '멥쌀', amount: 30 }, { db: '애호박', amount: 40 }, { db: '당근', amount: 30 }] },
+  ];
+
+  const FAQ_ITEMS = [
+    { q: '이유식 1끼에 철분은 얼마나 필요한가요?', a: '7개월 미만 0.27mg, 7~12개월 11mg, 13개월 이상 7mg을 기본으로 하고, 체중(kg)×1.0과 비교해 더 큰 값을 일일 권장으로 씁니다. 이유식 1끼 목표는 (일일권장 × 45%) ÷ 3끼입니다. 흡수율을 고려해 헴철·비타민C 식품을 포함하세요.' },
+    { q: '3인분 레시피를 1끼로 줄이려면?', a: '원래 인분 3, 목표 인분 1로 설정하면 재료·영양소가 자동으로 1/3 계산됩니다.' },
+    { q: '시금치만으로 철분이 충분한가요?', a: '시금치는 비헴철이라 흡수율이 3~8%에 불과합니다. 소고기·달걀노른자 등 헴철과 비타민C 과일을 함께 제공하세요.' },
+    { q: '우유와 이유식을 같이 먹여도 되나요?', a: '칼슘·우유 단백이 철분 흡수를 저해합니다. 철분 식품 섭취 후 1~2시간 간격을 두는 것이 좋습니다.' },
+    { q: '성장 백분위수는 어떻게 해석하나요?', a: 'P50은 같은 월령 평균, P3~P15는 저체중, P85~P97은 과체중 범위로 참고합니다. 정확한 판정은 소아과 성장검진이 필요합니다.' },
+    { q: 'DB에 없는 재료는 어떻게 하나요?', a: '재료 행의 "직접입력" 버튼으로 영양값을 수동 입력할 수 있습니다. 식약처 식품영양성분표를 참고하세요.' },
+  ];
+
+  const STORAGE_KEY = 'babyMealCalc_v2';
+  const CUSTOM_NUTRIENT_KEY = 'babyMealCustomNutrients';
+  let macroChart = null;
+  let showTabFn = null;
+  let customNutrients = {};
+  let activeModalRow = null;
+
+  // ─── 유틸 ───────────────────────────────────────────────
+
+  const FRACTIONS = [[1,8],[1,6],[1,5],[1,4],[1,3],[1,2],[2,3],[3,4]];
+
+  function parseNum(v) { const n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? 0 : n; }
+
+  function $(s, c) { return (c || document).querySelector(s); }
+  function $$(s, c) { return Array.from((c || document).querySelectorAll(s)); }
+
+  function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function escapeAttr(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+
+  function formatAmount(value, unit) {
+    if (value == null || isNaN(value)) return '—';
+    const v = Math.round(value * 1000) / 1000;
+    if (unit === '개') return (Math.abs(v - Math.round(v)) < 0.1 ? Math.round(v) : formatPretty(v)) + unit;
+    const intP = Math.floor(v), frac = v - intP;
+    if (frac < 0.02) return intP + unit;
+    for (const [n, d] of FRACTIONS) {
+      if (Math.abs(frac - n/d) < 0.04) {
+        const fs = (n===1&&d===2?'1/2':n+'/'+d);
+        return intP > 0 ? intP + ' ' + fs + unit : fs + unit;
+      }
+    }
+    return (v < 10 ? formatPretty(v) : Math.round(v*10)/10) + unit;
+  }
+
+  function formatPretty(n) { const r = Math.round(n*10)/10; return r%1===0 ? String(r) : r.toFixed(1); }
+
+  function normalize(str) {
+    return String(str).toLowerCase().replace(/\s+/g,'').replace(/_/g,'');
+  }
+
+  function toGrams(amount, unit) {
+    return amount * (UNIT_TO_G[unit] || 1);
+  }
+
+  // ─── DB 매칭 (fuzzy) ─────────────────────────────────────
+
+  function getAllDbEntries() {
+    const entries = [];
+    Object.keys(nutrientDB).forEach((key) => {
+      entries.push({ key, label: key.replace(/_/g,' '), data: nutrientDB[key] });
+      (nutrientDB[key].aliases || []).forEach((a) => entries.push({ key, label: a, data: nutrientDB[key] }));
+    });
+    Object.keys(customNutrients).forEach((key) => {
+      entries.push({ key: '__custom__'+key, label: key, data: customNutrients[key], custom: true });
+    });
+    return entries;
+  }
+
+  function fuzzyScore(query, target) {
+    const q = normalize(query), t = normalize(target);
+    if (!q) return 0;
+    if (t === q) return 100;
+    if (t.includes(q)) return 80 - (t.length - q.length);
+    let score = 0;
+    for (const ch of q) if (t.includes(ch)) score += 5;
+    return score;
+  }
+
+  function findBestMatch(name) {
+    if (!name) return null;
+    let best = null, bestScore = 0;
+    getAllDbEntries().forEach((e) => {
+      const s = Math.max(fuzzyScore(name, e.label), fuzzyScore(name, e.key));
+      if (s > bestScore) { bestScore = s; best = e; }
+    });
+    return bestScore >= 20 ? best : null;
+  }
+
+  function getNutrientData(row) {
+    const dbKey = row.dataset.dbKey;
+    const customName = row.dataset.customName;
+    if (dbKey && nutrientDB[dbKey]) return { ...nutrientDB[dbKey], _key: dbKey };
+    if (customName && customNutrients[customName]) return { ...customNutrients[customName], _key: customName, custom: true };
+    const name = $('.ing-name', row)?.value.trim();
+    const match = findBestMatch(name);
+    if (match) {
+      row.dataset.dbKey = match.custom ? '' : match.key;
+      row.dataset.customName = match.custom ? match.label : '';
+      return { ...match.data, _key: match.key };
+    }
+    return null;
+  }
+
+  // ─── 영양 계산 ───────────────────────────────────────────
+
+  function calcNutrientsForRow(row, ratio) {
+    const amount = parseNum($('.ing-amount', row)?.value);
+    const unit = $('.ing-unit', row)?.value || 'g';
+    const grams = toGrams(amount, unit) * ratio;
+    const data = getNutrientData(row);
+    if (!data || grams <= 0) return null;
+    const f = grams / 100;
+    return {
+      name: $('.ing-name', row)?.value.trim() || data._key,
+      grams,
+      kcal: data.kcal * f,
+      protein: data.protein * f,
+      carbs: data.carbs * f,
+      fat: data.fat * f,
+      fiber: data.fiber * f,
+      iron: data.iron * f,
+      note: data.note || '',
+      vitC: data.vitC || VIT_C_KEYWORDS.some((k) => normalize($('.ing-name', row)?.value).includes(normalize(k))),
+      inhibitor: data.inhibitor || IRON_INHIBITORS.some((k) => ($('.ing-name', row)?.value || '').includes(k)),
+      heme: (data.note || '').includes('헴철'),
+    };
+  }
+
+  function estimateAbsorbedIron(items, hasVitC, hasInhibitor) {
+    let absorbed = 0;
+    items.forEach((it) => {
+      if (!it) return;
+      let rate = it.heme ? 0.25 : 0.05;
+      if (!it.heme && (hasVitC || it.vitC)) rate = 0.15;
+      if (hasInhibitor) rate *= 0.5;
+      absorbed += it.iron * rate;
+    });
+    return absorbed;
+  }
+
+  function getWeightFactor() {
+    const w = parseNum($('#baby-weight')?.value);
+    const age = getAgeGuide($('#age-select')?.value);
+    if (!w || w <= 0) return 1;
+    return Math.min(Math.max(w / age.refWeightKg, 0.75), 1.25);
+  }
+
+  function getAgeGuide(id) {
+    return AGE_GUIDE.find((a) => a.id === id) || AGE_GUIDE[2];
+  }
+
+  /**
+   * 월령·체중 기반 철분 권장량
+   * 기준: 한국영양학회 2020 (0~6M 0.27 / 7~12M 11 / 1~3Y 7 mg)
+   * 체중 보정: max(기본, 체중kg×1.0) · 1끼 = (일일×45%)÷3
+   */
+  function calculateIronNeeds(ageMonths, weightKg) {
+    const ref = typeof IRON_DRI_REFERENCE !== 'undefined' ? IRON_DRI_REFERENCE : null;
+    let dailyIron = ageMonths < 7 ? 0.27 : (ageMonths <= 12 ? 11 : 7);
+    if (ref) {
+      dailyIron = ageMonths < 7 ? ref.under7.mg : (ageMonths <= 12 ? ref.infant.mg : ref.toddler.mg);
+    }
+    dailyIron = Math.max(dailyIron, weightKg * 1.0);
+    const ratio = ref ? ref.mealRatio : 0.45;
+    const meals = ref ? ref.mealsPerDay : 3;
+    const oneMealIron = (dailyIron * ratio) / meals;
+    return {
+      dailyIron: Math.round(dailyIron * 100) / 100,
+      oneMealIron: Math.round(oneMealIron * 100) / 100,
+    };
+  }
+
+  function getBabyWeightKg(age) {
+    const w = parseNum($('#baby-weight')?.value);
+    return w > 0 ? w : age.refWeightKg;
+  }
+
+  function getIronNeedsForAge(age, weightKg) {
+    const w = weightKg > 0 ? weightKg : age.refWeightKg;
+    return calculateIronNeeds(age.months, w);
+  }
+
+  function getRecommended(age, wf) {
+    const meals = age.mealsPerDay;
+    const iron = getIronNeedsForAge(age, getBabyWeightKg(age));
+    return {
+      kcal: Math.round(age.kcalPerMeal * wf),
+      protein: Math.round((age.proteinDaily / meals) * wf * 10) / 10,
+      iron: iron.oneMealIron,
+      ironDaily: iron.dailyIron,
+      volume: Math.round(age.perMeal * wf),
+    };
+  }
+
+  // ─── 성장 백분위 ─────────────────────────────────────────
+
+  function getGrowthTable(metric, gender) {
+    if (metric === 'height') {
+      return gender === 'girl' ? GROWTH_HEIGHT_GIRL : GROWTH_HEIGHT_BOY;
+    }
+    return gender === 'girl' ? GROWTH_WEIGHT_GIRL : GROWTH_WEIGHT_BOY;
+  }
+
+  function getGrowthData(months, gender, metric) {
+    const table = getGrowthTable(metric || 'weight', gender);
+    if (!table) return null;
+    const keys = Object.keys(table).map(Number).sort((a, b) => a - b);
+    let closest = keys[0];
+    keys.forEach((k) => { if (Math.abs(k - months) <= Math.abs(closest - months)) closest = k; });
+    return table[closest];
+  }
+
+  function estimatePercentile(value, months, gender, metric) {
+    const g = getGrowthData(months, gender, metric);
+    if (!g || !value) return null;
+    const pts = [
+      { p: 3, w: g.p3 }, { p: 15, w: g.p15 }, { p: 50, w: g.p50 },
+      { p: 85, w: g.p85 }, { p: 97, w: g.p97 },
+    ];
+    if (value <= pts[0].w) return 3;
+    if (value >= pts[4].w) return 97;
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (value >= pts[i].w && value <= pts[i + 1].w) {
+        const t = (value - pts[i].w) / (pts[i + 1].w - pts[i].w);
+        return Math.round(pts[i].p + t * (pts[i + 1].p - pts[i].p));
+      }
+    }
+    return 50;
+  }
+
+  function growthStatus(p, metric) {
+    if (p == null) return { label: '—', color: 'text-gray-500' };
+    const low = metric === 'height' ? '저신장' : '저체중';
+    const high = metric === 'height' ? '고신장' : '과체중';
+    const lowBorder = metric === 'height' ? '경계 저신장' : '경계 저체중';
+    const highBorder = metric === 'height' ? '경계 고신장' : '경계 과체중';
+    if (p < 3) return { label: `${low} (P<3)`, color: 'text-red-600' };
+    if (p < 15) return { label: `${lowBorder} (P3~15)`, color: 'text-amber-600' };
+    if (p > 97) return { label: `${high} (P>97)`, color: 'text-red-600' };
+    if (p > 85) return { label: `${highBorder} (P85~97)`, color: 'text-amber-600' };
+    return { label: '정상 범위 (P15~85)', color: 'text-green-600' };
+  }
+
+  function getRefHeightCm(months, gender) {
+    const g = getGrowthData(months, gender, 'height');
+    return g ? g.p50 : null;
+  }
+
+  // ─── DOM refs ─────────────────────────────────────────────
+
+  const els = {
+    ingredientBody: $('#ingredient-body'),
+    resultSection: $('#result-section'),
+    resultBody: $('#result-body'),
+    resultSummary: $('#result-summary'),
+    nutritionPanel: $('#nutrition-panel'),
+    ironHighlight: $('#iron-highlight'),
+    macroCanvas: $('#macro-chart'),
+    progressBars: $('#progress-bars'),
+    absorptionBadge: $('#absorption-badge'),
+    recentList: $('#recent-list'),
+    guideTableBody: $('#guide-table-body'),
+    growthResult: $('#growth-result'),
+    cubeResult: $('#cube-result'),
+    presetGrid: $('#preset-grid'),
+    allergyList: $('#allergy-list'),
+    faqList: $('#faq-list'),
+    ironGuideTable: $('#iron-guide-table'),
+    ironCombosGood: $('#iron-combos-good'),
+    ironCombosBad: $('#iron-combos-bad'),
+    ironAgeFacts: $('#iron-age-facts'),
+    ironDeficiencySigns: $('#iron-deficiency-signs'),
+    growthChartTable: $('#growth-chart-table'),
+    dbVersionBadge: $('#db-version-badge'),
+    ironMealPlanTabs: $('#iron-meal-plan-tabs'),
+    ironMealPlanBody: $('#iron-meal-plan-body'),
+    ironMealPlanMeta: $('#iron-meal-plan-meta'),
+    nutrientModal: $('#nutrient-modal'),
+    mobileMenuBtn: $('#mobile-menu-btn'),
+    mobileNav: $('#mobile-nav'),
+  };
+
+  // ─── 탭 ─────────────────────────────────────────────────
+
+  function initTabs() {
+    const tabs = $$('.nav-tab');
+    function showTab(id) {
+      tabs.forEach((t) => {
+        const on = t.dataset.tab === id;
+        t.classList.toggle('active', on);
+        if (t.hasAttribute('aria-selected')) t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      $$('.tab-panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + id));
+      els.mobileNav?.classList.add('hidden');
+      history.replaceState(null, '', '#' + id);
+    }
+    showTabFn = showTab;
+    tabs.forEach((t) => t.addEventListener('click', (e) => { e.preventDefault(); showTab(t.dataset.tab); }));
+    document.addEventListener('click', (e) => {
+      const l = e.target.closest('[data-tab]');
+      if (l && !l.classList.contains('nav-tab')) { e.preventDefault(); showTab(l.dataset.tab); }
+    });
+    const valid = ['calculator','growth','portion','presets','iron','faq'];
+    const hash = location.hash.slice(1);
+    showTab(valid.includes(hash) ? hash : 'calculator');
+  }
+
+  function switchTab(id) { if (showTabFn) showTabFn(id); }
+
+  // ─── 재료 행 ─────────────────────────────────────────────
+
+  function unitOptions(sel) {
+    return UNITS.map((u) => `<option value="${u}"${u===sel?' selected':''}>${u}</option>`).join('');
+  }
+
+  function createIngredientRow(data) {
+    data = data || { name: '', amount: '', unit: 'g', db: '' };
+    const tr = document.createElement('tr');
+    tr.className = 'ingredient-row border-b border-orange-100';
+    if (data.db) tr.dataset.dbKey = data.db;
+    tr.innerHTML = `
+      <td class="py-2 pr-1 relative">
+        <input type="text" class="ing-name w-full px-3 py-2 rounded-lg border border-orange-200 text-sm" placeholder="재료명" value="${escapeAttr(data.name || (data.db ? data.db.replace(/_/g,' ') : ''))}" autocomplete="off">
+        <div class="autocomplete-list hidden absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-orange-200 rounded-lg shadow-lg max-h-40 overflow-y-auto"></div>
+      </td>
+      <td class="py-2 pr-1"><input type="number" class="ing-amount w-full px-2 py-2 rounded-lg border border-orange-200 text-sm" min="0" step="any" value="${data.amount !== '' ? data.amount : ''}"></td>
+      <td class="py-2 pr-1"><select class="ing-unit w-full px-2 py-2 rounded-lg border border-orange-200 text-sm">${unitOptions(data.unit || 'g')}</select></td>
+      <td class="py-2 text-center whitespace-nowrap">
+        <button type="button" class="custom-nutrient-btn text-xs text-teal-600 hover:underline px-1" title="영양값 직접입력">직접입력</button>
+        <button type="button" class="remove-row text-red-400 hover:text-red-600 p-1" aria-label="삭제">✕</button>
+      </td>`;
+
+    const nameInput = $('.ing-name', tr);
+    const acList = $('.autocomplete-list', tr);
+
+    nameInput.addEventListener('input', () => {
+      delete tr.dataset.dbKey; delete tr.dataset.customName;
+      showAutocomplete(nameInput, acList);
+      calculate();
+    });
+    nameInput.addEventListener('blur', () => setTimeout(() => acList.classList.add('hidden'), 200));
+    nameInput.addEventListener('focus', () => showAutocomplete(nameInput, acList));
+
+    tr.querySelectorAll('.ing-amount, .ing-unit').forEach((el) => {
+      el.addEventListener('input', calculate);
+      el.addEventListener('change', calculate);
+    });
+    $('.remove-row', tr).addEventListener('click', () => { tr.remove(); calculate(); });
+    $('.custom-nutrient-btn', tr).addEventListener('click', () => openNutrientModal(tr));
+    return tr;
+  }
+
+  function showAutocomplete(input, listEl) {
+    const q = input.value.trim();
+    if (q.length < 1) { listEl.classList.add('hidden'); return; }
+    const matches = getAllDbEntries()
+      .map((e) => ({ ...e, score: Math.max(fuzzyScore(q, e.label), fuzzyScore(q, e.key)) }))
+      .filter((e) => e.score >= 20)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8);
+    if (!matches.length) { listEl.classList.add('hidden'); return; }
+    listEl.innerHTML = matches.map((m) =>
+      `<button type="button" class="ac-item w-full text-left px-3 py-2 text-sm hover:bg-orange-50 border-b border-orange-50 last:border-0" data-key="${escapeAttr(m.custom ? '' : m.key)}" data-label="${escapeAttr(m.label)}" data-custom="${m.custom ? '1' : '0'}">${escapeHtml(m.label)}${m.data.iron ? ` <span class="text-xs text-gray-400">철 ${m.data.iron}mg/100g</span>` : ''}</button>`
+    ).join('');
+    listEl.classList.remove('hidden');
+    listEl.querySelectorAll('.ac-item').forEach((btn) => {
+      btn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const row = input.closest('.ingredient-row');
+        input.value = btn.dataset.label;
+        if (btn.dataset.custom === '1') {
+          row.dataset.customName = btn.dataset.label;
+          delete row.dataset.dbKey;
+        } else {
+          row.dataset.dbKey = btn.dataset.key;
+          delete row.dataset.customName;
+        }
+        listEl.classList.add('hidden');
+        calculate();
+      });
+    });
+  }
+
+  function getIngredients() {
+    return $$('.ingredient-row', els.ingredientBody).map((row) => ({
+      name: $('.ing-name', row).value.trim(),
+      amount: parseNum($('.ing-amount', row).value),
+      unit: $('.ing-unit', row).value,
+      dbKey: row.dataset.dbKey,
+    })).filter((i) => i.name || i.amount > 0);
+  }
+
+  function setIngredients(list) {
+    els.ingredientBody.innerHTML = '';
+    (list.length ? list : [{ name: '', amount: '', unit: 'g' }]).forEach((ing) => {
+      const row = createIngredientRow({
+        name: ing.db ? undefined : ing.name,
+        db: ing.db || ing.dbKey,
+        amount: ing.amount,
+        unit: ing.unit || 'g',
+      });
+      els.ingredientBody.appendChild(row);
+    });
+  }
+
+  // ─── 영양 모달 ───────────────────────────────────────────
+
+  function loadCustomNutrients() {
+    try { customNutrients = JSON.parse(localStorage.getItem(CUSTOM_NUTRIENT_KEY) || '{}'); }
+    catch (_) { customNutrients = {}; }
+  }
+
+  function openNutrientModal(row) {
+    activeModalRow = row;
+    const name = $('.ing-name', row).value.trim() || '새 재료';
+    $('#modal-food-name').value = name;
+    const existing = customNutrients[name];
+    $('#modal-kcal').value = existing?.kcal ?? '';
+    $('#modal-protein').value = existing?.protein ?? '';
+    $('#modal-carbs').value = existing?.carbs ?? '';
+    $('#modal-fat').value = existing?.fat ?? '';
+    $('#modal-fiber').value = existing?.fiber ?? '';
+    $('#modal-iron').value = existing?.iron ?? '';
+    els.nutrientModal?.classList.remove('hidden');
+  }
+
+  function closeNutrientModal() {
+    els.nutrientModal?.classList.add('hidden');
+    activeModalRow = null;
+  }
+
+  function saveCustomNutrient() {
+    const name = $('#modal-food-name').value.trim();
+    if (!name) return;
+    customNutrients[name] = {
+      kcal: parseNum($('#modal-kcal').value),
+      protein: parseNum($('#modal-protein').value),
+      carbs: parseNum($('#modal-carbs').value),
+      fat: parseNum($('#modal-fat').value),
+      fiber: parseNum($('#modal-fiber').value),
+      iron: parseNum($('#modal-iron').value),
+      note: '직접입력',
+    };
+    localStorage.setItem(CUSTOM_NUTRIENT_KEY, JSON.stringify(customNutrients));
+    if (activeModalRow) {
+      $('.ing-name', activeModalRow).value = name;
+      activeModalRow.dataset.customName = name;
+      delete activeModalRow.dataset.dbKey;
+    }
+    closeNutrientModal();
+    calculate();
+  }
+
+  // ─── Chart.js ─────────────────────────────────────────────
+
+  function renderMacroChart(protein, carbs, fat) {
+    if (!els.macroCanvas || typeof Chart === 'undefined') return;
+    const pK = protein * 4, cK = carbs * 4, fK = fat * 9;
+    const total = pK + cK + fK || 1;
+    if (macroChart) macroChart.destroy();
+    macroChart = new Chart(els.macroCanvas, {
+      type: 'pie',
+      data: {
+        labels: ['단백질', '탄수화물', '지방'],
+        datasets: [{ data: [pK, cK, fK], backgroundColor: ['#7eb89a', '#ffd4b8', '#e8d4f0'], borderWidth: 2 }],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${Math.round(ctx.raw/total*100)}%` } },
+        },
+      },
+    });
+  }
+
+  function renderProgressBars(totals, rec) {
+    if (!els.progressBars) return;
+    const items = [
+      { label: '열량', val: totals.kcal, rec: rec.kcal, unit: 'kcal', color: 'bg-orange-400' },
+      { label: '단백질', val: totals.protein, rec: rec.protein, unit: 'g', color: 'bg-sage' },
+      { label: '철분', val: totals.iron, rec: rec.iron, unit: 'mg', color: 'bg-red-400', highlight: true },
+      { label: '식이섬유', val: totals.fiber, rec: 3, unit: 'g', color: 'bg-mint' },
+    ];
+    els.progressBars.innerHTML = items.map((it) => {
+      const pct = it.rec > 0 ? Math.min(Math.round(it.val / it.rec * 100), 150) : 0;
+      const w = Math.min(pct, 100);
+      return `<div class="${it.highlight ? 'ring-2 ring-red-200 rounded-xl p-3 bg-red-50/50' : ''}">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="font-medium${it.highlight ? ' text-red-700' : ''}">${it.label}</span>
+          <span>${formatPretty(it.val)}${it.unit} / ${it.rec}${it.unit} <strong>(${pct}%)</strong></span>
+        </div>
+        <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
+          <div class="${it.color} h-full rounded-full transition-all" style="width:${w}%"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ─── 메인 계산 ───────────────────────────────────────────
+
+  function calculate() {
+    const orig = Math.max(parseNum($('#original-servings')?.value), 0.1);
+    const target = Math.max(parseNum($('#target-servings')?.value), 0.1);
+    const ratio = target / orig;
+    const age = getAgeGuide($('#age-select')?.value);
+    const wf = getWeightFactor();
+    const rec = getRecommended(age, wf);
+    const rows = $$('.ingredient-row', els.ingredientBody);
+
+    if (!rows.length) { els.resultSection?.classList.add('hidden'); return; }
+
+    const nutItems = [];
+    els.resultBody.innerHTML = rows.map((row) => {
+      const name = $('.ing-name', row).value.trim() || '(재료)';
+      const amount = parseNum($('.ing-amount', row).value);
+      const unit = $('.ing-unit', row).value;
+      const scaled = amount * ratio;
+      const ni = calcNutrientsForRow(row, ratio);
+      if (ni) nutItems.push(ni);
+      const ironBadge = ni?.iron > 0.3 ? '<span class="text-xs text-red-500 ml-1">Fe</span>' : '';
+      return `<tr class="border-b border-orange-50 hover:bg-orange-50/40">
+        <td class="py-2 px-2 font-medium">${escapeHtml(name)}${ironBadge}</td>
+        <td class="py-2 px-2 text-gray-500">${formatAmount(amount, unit)}</td>
+        <td class="py-2 px-2 text-orange-600 font-semibold">${formatAmount(scaled, unit)}</td>
+        <td class="py-2 px-2 text-xs text-gray-500 hidden sm:table-cell">${ni ? formatPretty(ni.iron)+'mg' : '—'}</td>
+      </tr>`;
+    }).join('');
+
+    const totals = nutItems.reduce((a, it) => ({
+      kcal: a.kcal + it.kcal, protein: a.protein + it.protein, carbs: a.carbs + it.carbs,
+      fat: a.fat + it.fat, fiber: a.fiber + it.fiber, iron: a.iron + it.iron,
+    }), { kcal:0, protein:0, carbs:0, fat:0, fiber:0, iron:0 });
+
+    const hasVitC = nutItems.some((it) => it.vitC);
+    const hasInhibitor = nutItems.some((it) => it.inhibitor);
+    const absorbedIron = estimateAbsorbedIron(nutItems, hasVitC, hasInhibitor);
+
+    els.resultSummary.innerHTML = `
+      <div class="grid sm:grid-cols-3 gap-3 text-sm mb-4">
+        <div class="bg-white rounded-xl p-4 border border-orange-100">
+          <span class="text-gray-500">1끼 총량(추정)</span>
+          <p class="text-xl font-bold text-orange-600 mt-1">${formatPretty(nutItems.reduce((s,i)=>s+i.grams,0))}g</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-orange-100">
+          <span class="text-gray-500">${age.label} 권장 1끼</span>
+          <p class="text-xl font-bold text-sage mt-1">${rec.volume}g · ${rec.kcal}kcal</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-red-100 bg-red-50/30">
+          <span class="text-gray-500">1끼 철분</span>
+          <p class="text-xl font-bold text-red-600 mt-1">${formatPretty(totals.iron)}mg <span class="text-sm font-normal">/ ${rec.iron}mg</span></p>
+        </div>
+      </div>`;
+
+    if (els.nutritionPanel) {
+      els.nutritionPanel.innerHTML = `
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-sm mb-4">
+          ${[['열량', totals.kcal, 'kcal'], ['단백질', totals.protein, 'g'], ['탄수화물', totals.carbs, 'g'],
+             ['지방', totals.fat, 'g'], ['식이섬유', totals.fiber, 'g'], ['철분', totals.iron, 'mg']].map(([l,v,u]) =>
+            `<div class="bg-white rounded-lg p-3 border ${l==='철분'?'border-red-200 bg-red-50/40':'border-orange-100'}">
+              <p class="text-gray-500 text-xs">${l}</p><p class="font-bold ${l==='철분'?'text-red-600':'text-gray-800'}">${formatPretty(v)}${u}</p>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    if (els.ironHighlight) {
+      const weightKg = getBabyWeightKg(age);
+      const ironNeeds = getIronNeedsForAge(age, weightKg);
+      const ironPct = rec.iron > 0 ? Math.round(totals.iron / rec.iron * 100) : 0;
+      const absPct = rec.iron > 0 ? Math.round(absorbedIron / rec.iron * 100) : 0;
+      const baseIron = age.months < 7 ? 0.27 : (age.months <= 12 ? 11 : 7);
+      els.ironHighlight.innerHTML = `
+        <div class="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-5 border-2 border-red-200">
+          <h3 class="font-bold text-red-800 text-lg mb-2">🩸 체중 기반 철분 분석</h3>
+          <div class="grid sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p>아기 체중 <strong>${weightKg}kg</strong> · ${age.label} (${age.months}개월)</p>
+              <p class="mt-1">1끼 철분 함량: <strong class="text-red-600 text-lg">${formatPretty(totals.iron)}mg</strong> (권장 대비 ${ironPct}%)</p>
+              <p>추정 흡수 철분: <strong>${formatPretty(absorbedIron)}mg</strong> (흡수율 반영 ${absPct}%)</p>
+            </div>
+            <div>
+              <p class="text-gray-600">기본 일일 권장: ${baseIron}mg → 체중 보정: <strong>${ironNeeds.dailyIron}mg/일</strong></p>
+              <p class="text-gray-600">이유식 1끼 목표: <strong class="text-red-700">${ironNeeds.oneMealIron}mg</strong> <span class="text-xs">(일일 × 45% ÷ 3끼)</span></p>
+              ${hasVitC ? '<p class="mt-2 text-green-700 font-medium">✓ 비타민C 식품 포함 → 비헴철 흡수율 ↑</p>' : ''}
+              ${hasInhibitor ? '<p class="mt-1 text-amber-700 font-medium">⚠ 칼슘/우유 성분 포함 → 철 흡수 저해 가능</p>' : ''}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    if (els.absorptionBadge) {
+      let badges = [];
+      if (hasVitC) badges.push('<span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">흡수율 ↑ 비타민C</span>');
+      if (hasInhibitor) badges.push('<span class="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-sm font-medium">흡수 주의 칼슘/우유</span>');
+      if (nutItems.some((i) => i.heme)) badges.push('<span class="inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-800 text-sm font-medium">헴철 포함</span>');
+      els.absorptionBadge.innerHTML = badges.join(' ') || '<span class="text-gray-400 text-sm">재료를 추가하면 흡수 팁이 표시됩니다</span>';
+    }
+
+    renderMacroChart(totals.protein, totals.carbs, totals.fat);
+    renderProgressBars(totals, rec);
+    els.resultSection?.classList.remove('hidden');
+    saveRecent();
+    updateGrowth();
+  }
+
+  // ─── 성장 · 권장량 ───────────────────────────────────────
+
+  function renderGuideTable() {
+    if (!els.guideTableBody) return;
+    els.guideTableBody.innerHTML = AGE_GUIDE.map((a) => {
+      const iron = getIronNeedsForAge(a, a.refWeightKg);
+      return `<tr class="border-b border-orange-50 hover:bg-orange-50/30">
+        <td class="py-3 px-3 font-medium">${a.label}</td>
+        <td class="py-3 px-3 text-orange-600 font-semibold">${a.perMeal}g</td>
+        <td class="py-3 px-3">${a.kcalPerMeal}kcal</td>
+        <td class="py-3 px-3">${a.mealsPerDay}회 / ${a.kcalDaily}kcal</td>
+        <td class="py-3 px-3 text-red-600 font-medium">${iron.dailyIron}mg/일</td>
+        <td class="py-3 px-3 text-red-500">${iron.oneMealIron}mg</td>
+        <td class="py-3 px-3 text-sm text-gray-600">${a.consistency}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function updateGrowth() {
+    if (!els.growthResult) return;
+    const age = getAgeGuide($('#growth-age')?.value || $('#age-select')?.value);
+    const weight = parseNum($('#growth-weight')?.value || $('#baby-weight')?.value);
+    const height = parseNum($('#growth-height')?.value);
+    const gender = $('#growth-gender')?.value || 'boy';
+    const weightPct = estimatePercentile(weight, age.months, gender, 'weight');
+    const heightPct = height > 0 ? estimatePercentile(height, age.months, gender, 'height') : null;
+    const weightStatus = growthStatus(weightPct, 'weight');
+    const heightStatus = growthStatus(heightPct, 'height');
+    const w = weight > 0 ? weight : age.refWeightKg;
+    const refH = getRefHeightCm(age.months, gender);
+    const ironNeeds = getIronNeedsForAge(age, w);
+    const gd = getGrowthData(age.months, gender, 'weight');
+    const gh = getGrowthData(age.months, gender, 'height');
+
+    els.growthResult.innerHTML = `
+      <div class="bg-white rounded-2xl p-6 border border-orange-100">
+        <h3 class="font-bold text-lg mb-3">📈 우리 아이 성장 추정</h3>
+        <p class="text-sm text-gray-500 mb-3">2017 소아청소년 성장도표(질병관리청) · 체중·신장 백분위</p>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div class="bg-orange-50/50 rounded-xl p-4 border border-orange-100">
+            <p class="text-sm text-gray-600">체중 <strong>${weight || '—'}kg</strong> ${gd ? `<span class="text-xs text-gray-400">(P50 ${gd.p50}kg)</span>` : ''}</p>
+            <p class="mt-1 text-xl font-bold">${weightPct != null ? 'P' + weightPct : '—'}</p>
+            <p class="${weightStatus.color} text-sm font-medium mt-1">${weightStatus.label}</p>
+          </div>
+          <div class="bg-blue-50/50 rounded-xl p-4 border border-blue-100">
+            <p class="text-sm text-gray-600">신장 <strong>${height > 0 ? height + 'cm' : '—'}</strong> ${gh ? `<span class="text-xs text-gray-400">(P50 ${gh.p50}cm)</span>` : ''}</p>
+            <p class="mt-1 text-xl font-bold">${heightPct != null ? 'P' + heightPct : height > 0 ? '—' : '입력하세요'}</p>
+            <p class="${heightStatus.color} text-sm font-medium mt-1">${height > 0 ? heightStatus.label : '신장 입력 시 백분위 표시'}</p>
+          </div>
+          <div class="bg-red-50 rounded-xl p-4 border border-red-100">
+            <p class="font-medium text-red-800 text-sm">체중 기반 철분 권장</p>
+            <p class="text-lg mt-1">하루 <strong class="text-red-600">${ironNeeds.dailyIron}mg</strong></p>
+            <p class="text-xl font-bold text-red-600">1끼 ${ironNeeds.oneMealIron}mg</p>
+          </div>
+        </div>
+        ${refH ? `<p class="mt-3 text-xs text-gray-500">${age.label} ${gender === 'girl' ? '여아' : '남아'} 평균 신장 P50: ${refH}cm</p>` : ''}
+        <p class="mt-2 text-xs text-gray-400">P3/P15/P50/P85/P97 기준 · 정확한 진단은 소아과 상담 필수</p>
+      </div>`;
+  }
+
+  // ─── 큐브 계산 ───────────────────────────────────────────
+
+  function calculateCube() {
+    const total = parseNum($('#cube-total')?.value);
+    const size = parseInt($('#cube-size')?.value, 10) || 15;
+    const meals = Math.max(parseInt($('#cube-meals')?.value, 10) || 5, 1);
+    if (!els.cubeResult) return;
+    if (total <= 0) { els.cubeResult.innerHTML = '<p class="text-gray-400">총량을 입력하세요.</p>'; return; }
+    const cubes = Math.ceil(total / size);
+    els.cubeResult.innerHTML = `
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl p-5 border border-mint/50"><p class="text-gray-500 text-sm">큐브 개수</p>
+          <p class="text-3xl font-bold text-teal-600">${cubes}<span class="text-lg text-gray-500">개</span></p>
+          <p class="text-sm text-gray-500 mt-1">${size}ml 기준</p></div>
+        <div class="bg-white rounded-xl p-5 border border-mint/50"><p class="text-gray-500 text-sm">${meals}끼 분할</p>
+          <p class="text-3xl font-bold text-teal-600">${formatPretty(total/meals)}<span class="text-lg text-gray-500">g/끼</span></p>
+          <p class="text-sm text-gray-500 mt-1">큐브 ${formatPretty(total/meals/size)}개/끼</p></div>
+      </div>
+      <div class="mt-4 p-4 bg-amber-50 rounded-xl text-sm text-amber-900 border border-amber-100">
+        <strong>보관:</strong> 냉장 48~72시간 · 냉동 2주 · 해동 후 재냉동 금지 (질병관리청)</div>`;
+  }
+
+  // ─── 프리셋 · FAQ · 철분가이드 ───────────────────────────
+
+  function renderPresets() {
+    if (!els.presetGrid) return;
+    els.presetGrid.innerHTML = PRESETS.map((p) => {
+      const ironIng = p.ingredients.filter((i) => {
+        const d = nutrientDB[i.db];
+        return d && (d.iron >= 1 || (d.note || '').includes('헴철'));
+      });
+      return `<button type="button" class="preset-card bg-white rounded-2xl p-5 border border-orange-100 text-left shadow-sm hover:border-orange-300 transition" data-id="${p.id}">
+        <span class="text-3xl">${p.emoji}</span>
+        ${p.ironStar ? '<span class="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">철분↑</span>' : ''}
+        <h3 class="font-bold mt-2">${escapeHtml(p.name)}</h3>
+        <p class="text-sm text-gray-500">${p.servings}인분 · ${getAgeGuide(p.age).label}</p>
+        <p class="text-xs text-red-400 mt-1">${ironIng.map((i) => i.db.replace(/_/g,' ')).join(', ') || '철분 보통'}</p>
+      </button>`;
+    }).join('');
+    els.presetGrid.querySelectorAll('.preset-card').forEach((c) => {
+      c.addEventListener('click', () => {
+        const p = PRESETS.find((x) => x.id === c.dataset.id);
+        if (!p) return;
+        $('#recipe-name').value = p.name;
+        $('#original-servings').value = p.servings;
+        $('#original-slider').value = p.servings;
+        $('#target-servings').value = 1;
+        $('#target-slider').value = 1;
+        $('#age-select').value = p.age;
+        setIngredients(p.ingredients.map((i) => ({ db: i.db, amount: i.amount, unit: i.unit || 'g', name: i.db.replace(/_/g,' ') })));
+        switchTab('calculator');
+        calculate();
+      });
+    });
+  }
+
+  function renderIronGuide() {
+    if (els.dbVersionBadge && typeof NUTRIENT_DB_VERSION !== 'undefined') {
+      els.dbVersionBadge.textContent = '영양 DB: ' + NUTRIENT_DB_VERSION;
+    }
+    if (els.ironGuideTable) {
+      els.ironGuideTable.innerHTML = IRON_GUIDE_FOODS.map((f) =>
+        `<tr class="border-b border-orange-50 hover:bg-red-50/30"><td class="py-2 px-3 font-medium">${f.name}</td>
+          <td class="py-2 px-3 text-red-600 font-bold">${f.iron}mg</td>
+          <td class="py-2 px-3">${f.type}</td><td class="py-2 px-3 text-sm">${f.absorb}</td>
+          <td class="py-2 px-3 text-sm text-gray-600">${f.tip}</td></tr>`).join('');
+    }
+    if (els.ironCombosGood) {
+      els.ironCombosGood.innerHTML = IRON_COMBOS_GOOD.map((c) =>
+        `<div class="bg-green-50 rounded-xl p-4 border border-green-100">
+          <span class="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">${c.badge}</span>
+          <p class="font-bold mt-2">${c.combo}</p>
+          <p class="text-sm text-gray-600 mt-1">${c.effect}</p>
+          ${c.timing ? `<p class="text-xs text-green-700 mt-1">⏱ ${c.timing}</p>` : ''}</div>`).join('');
+    }
+    if (els.ironCombosBad) {
+      els.ironCombosBad.innerHTML = IRON_COMBOS_BAD.map((c) =>
+        `<div class="bg-amber-50 rounded-xl p-4 border border-amber-200">
+          <span class="text-xs ${c.severity === '높음' ? 'bg-red-200 text-red-800' : 'bg-amber-200 text-amber-900'} px-2 py-0.5 rounded-full">${c.severity || '주의'}</span>
+          <p class="font-bold text-amber-900 mt-2">${c.combo}</p>
+          <p class="text-sm text-amber-800 mt-1">${c.reason}</p>
+          <p class="text-xs text-gray-600 mt-1">💡 ${c.tip}</p></div>`).join('');
+    }
+    if (els.ironAgeFacts && typeof IRON_AGE_FACTS !== 'undefined') {
+      els.ironAgeFacts.innerHTML = IRON_AGE_FACTS.map((f) =>
+        `<div class="bg-white rounded-xl p-4 border border-orange-100">
+          <p class="font-bold text-red-700">${f.age}</p>
+          <p class="text-sm text-gray-600 mt-1"><strong>위험:</strong> ${f.risk}</p>
+          <p class="text-sm text-sage mt-1"><strong>대응:</strong> ${f.action}</p></div>`).join('');
+    }
+    if (els.ironDeficiencySigns && typeof IRON_DEFICIENCY_SIGNS !== 'undefined') {
+      els.ironDeficiencySigns.innerHTML = IRON_DEFICIENCY_SIGNS.map((s) =>
+        `<li class="flex gap-2 text-sm text-gray-700"><span class="text-red-400">•</span>${s}</li>`).join('');
+    }
+  }
+
+  function renderGrowthChartTable() {
+    if (!els.growthChartTable) return;
+    const months = Object.keys(GROWTH_WEIGHT_BOY).map(Number).sort((a, b) => a - b);
+    els.growthChartTable.innerHTML = months.map((m) => {
+      const bw = GROWTH_WEIGHT_BOY[m];
+      const gw = GROWTH_WEIGHT_GIRL[m];
+      const bh = GROWTH_HEIGHT_BOY[m];
+      const gh = GROWTH_HEIGHT_GIRL[m];
+      return `<tr class="border-b border-orange-50 text-xs sm:text-sm hover:bg-orange-50/20">
+        <td class="py-2 px-2 font-medium whitespace-nowrap">${m}개월</td>
+        <td class="py-2 px-2">${bw.p50}kg <span class="text-gray-400">(${bw.p3}~${bw.p97})</span></td>
+        <td class="py-2 px-2">${gw.p50}kg <span class="text-gray-400">(${gw.p3}~${gw.p97})</span></td>
+        <td class="py-2 px-2">${bh ? bh.p50 : '—'}cm <span class="text-gray-400">${bh ? `(${bh.p3}~${bh.p97})` : ''}</span></td>
+        <td class="py-2 px-2">${gh ? gh.p50 : '—'}cm <span class="text-gray-400">${gh ? `(${gh.p3}~${gh.p97})` : ''}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  let activeMealPlanId = '9-11m';
+
+  function renderIronMealPlan(planId) {
+    if (!els.ironMealPlanBody || typeof IRON_MEAL_PLANS_7DAY === 'undefined') return;
+    const plan = IRON_MEAL_PLANS_7DAY.find((p) => p.id === planId) || IRON_MEAL_PLANS_7DAY[2];
+    activeMealPlanId = plan.id;
+
+    if (els.ironMealPlanMeta) {
+      els.ironMealPlanMeta.innerHTML =
+        `<span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full mr-2">하루 ${plan.mealsPerDay}끼</span>` +
+        `<span class="text-sm text-gray-600">철분 1끼 목표: <strong class="text-red-600">${plan.ironTarget}</strong></span>` +
+        `<span class="text-xs text-gray-400 ml-2">★ = 헴철·고철분 식품</span>`;
+    }
+
+    els.ironMealPlanBody.innerHTML = plan.days.map((d) => {
+      const hasPreset = d.presetId && PRESETS.find((p) => p.id === d.presetId);
+      const loadBtn = hasPreset
+        ? `<button type="button" class="meal-plan-load text-xs text-orange-600 hover:underline ml-2" data-preset="${d.presetId}">계산기 로드</button>`
+        : '';
+      const ironBadge = (d.ironSource || '').includes('★')
+        ? 'text-red-600 font-semibold' : 'text-gray-600';
+      return `<tr class="border-b border-orange-50 hover:bg-orange-50/30">
+        <td class="py-3 px-3 font-bold text-orange-600">${d.dow}</td>
+        <td class="py-3 px-3">${escapeHtml(d.meal)}${loadBtn}</td>
+        <td class="py-3 px-3 text-sm ${ironBadge}">${escapeHtml(d.ironSource || '—')}</td>
+        <td class="py-3 px-3 text-sm text-green-700">${escapeHtml(d.vc || '—')}</td>
+        <td class="py-3 px-3 text-xs text-gray-500">${escapeHtml(d.note || '')}</td>
+      </tr>`;
+    }).join('');
+
+    els.ironMealPlanBody.querySelectorAll('.meal-plan-load').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS.find((x) => x.id === btn.dataset.preset);
+        if (!p) return;
+        $('#recipe-name').value = p.name;
+        $('#original-servings').value = p.servings;
+        $('#original-slider').value = p.servings;
+        $('#target-servings').value = 1;
+        $('#target-slider').value = 1;
+        $('#age-select').value = p.age;
+        setIngredients(p.ingredients.map((i) => ({ db: i.db, amount: i.amount, unit: i.unit || 'g' })));
+        switchTab('calculator');
+        calculate();
+      });
+    });
+
+    if (els.ironMealPlanTabs) {
+      els.ironMealPlanTabs.querySelectorAll('.meal-plan-tab').forEach((tab) => {
+        tab.classList.toggle('active', tab.dataset.plan === plan.id);
+      });
+    }
+  }
+
+  function initIronMealPlans() {
+    if (!els.ironMealPlanTabs || typeof IRON_MEAL_PLANS_7DAY === 'undefined') return;
+    els.ironMealPlanTabs.innerHTML = IRON_MEAL_PLANS_7DAY.map((p) =>
+      `<button type="button" class="meal-plan-tab px-3 py-2 rounded-full text-sm bg-orange-50 hover:bg-orange-100 transition" data-plan="${p.id}">${p.label}</button>`
+    ).join('');
+    els.ironMealPlanTabs.querySelectorAll('.meal-plan-tab').forEach((tab) => {
+      tab.addEventListener('click', () => renderIronMealPlan(tab.dataset.plan));
+    });
+    renderIronMealPlan(activeMealPlanId);
+  }
+
+  function renderFaq() {
+    if (!els.faqList) return;
+    els.faqList.innerHTML = FAQ_ITEMS.map((item) =>
+      `<details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
+        <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">${escapeHtml(item.q)}<span class="text-orange-400">+</span></summary>
+        <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">${escapeHtml(item.a)}</div>
+      </details>`).join('');
+  }
+
+  // ─── localStorage ─────────────────────────────────────────
+
+  function saveRecent() {
+    const entry = {
+      name: $('#recipe-name')?.value || '레시피',
+      orig: parseNum($('#original-servings')?.value),
+      target: parseNum($('#target-servings')?.value),
+      age: $('#age-select')?.value,
+      weight: parseNum($('#baby-weight')?.value),
+      ingredients: getIngredients(),
+      time: Date.now(),
+    };
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (_) {}
+    list.unshift(entry);
+    list = list.slice(0, 8);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    renderRecent();
+  }
+
+  function renderRecent() {
+    if (!els.recentList) return;
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (_) {}
+    els.recentList.innerHTML = list.length ? list.map((e, i) =>
+      `<button type="button" class="recent-item w-full text-left px-3 py-2 rounded-lg border border-orange-100 text-sm hover:bg-orange-50" data-i="${i}">
+        ${escapeHtml(e.name)} <span class="text-gray-400">${e.orig}→${e.target}끼</span></button>`).join('') :
+      '<p class="text-gray-400 text-sm">저장된 기록 없음</p>';
+    els.recentList.querySelectorAll('.recent-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const e = list[parseInt(btn.dataset.i, 10)];
+        $('#recipe-name').value = e.name;
+        $('#original-servings').value = e.orig;
+        $('#original-slider').value = e.orig;
+        $('#target-servings').value = e.target;
+        $('#target-slider').value = e.target;
+        if (e.age) $('#age-select').value = e.age;
+        if (e.weight) $('#baby-weight').value = e.weight;
+        setIngredients(e.ingredients);
+        calculate();
+      });
+    });
+  }
+
+  function syncSliders() {
+    [['#original-servings','#original-slider'],['#target-servings','#target-slider']].forEach(([a,b]) => {
+      const inp = $(a), sl = $(b);
+      if (!inp || !sl) return;
+      inp.addEventListener('input', () => { sl.value = inp.value; calculate(); });
+      sl.addEventListener('input', () => { inp.value = sl.value; calculate(); });
+    });
+    ['#age-select','#baby-weight','#recipe-name'].forEach((id) => {
+      const el = $(id);
+      if (el) { el.addEventListener('input', calculate); el.addEventListener('change', calculate); }
+    });
+    ['#growth-age','#growth-weight','#growth-height','#growth-gender'].forEach((id) => {
+      const el = $(id);
+      if (el) { el.addEventListener('input', updateGrowth); el.addEventListener('change', updateGrowth); }
+    });
+    ['#cube-total','#cube-size','#cube-meals'].forEach((id) => {
+      const el = $(id);
+      if (el) { el.addEventListener('input', calculateCube); el.addEventListener('change', calculateCube); }
+    });
+  }
+
+  function injectFaqSchema() {
+    const s = document.createElement('script');
+    s.type = 'application/ld+json';
+    s.textContent = JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'FAQPage',
+      mainEntity: FAQ_ITEMS.map((i) => ({ '@type': 'Question', name: i.q, acceptedAnswer: { '@type': 'Answer', text: i.a } })),
+    });
+    document.head.appendChild(s);
+  }
+
+  // ─── init ─────────────────────────────────────────────────
+
+  function init() {
+    loadCustomNutrients();
+    initTabs();
+    syncSliders();
+    renderGuideTable();
+    renderPresets();
+    renderIronGuide();
+    renderGrowthChartTable();
+    initIronMealPlans();
+    renderFaq();
+    renderRecent();
+    injectFaqSchema();
+
+    setIngredients([
+      { db: '멥쌀', amount: 60, name: '멥쌀' },
+      { db: '소고기_다짐육', amount: 45, name: '소고기 다짐육' },
+      { db: '당근', amount: 30, name: '당근' },
+      { db: '브로콜리', amount: 30, name: '브로콜리' },
+    ]);
+
+    $('#add-ingredient')?.addEventListener('click', () => els.ingredientBody.appendChild(createIngredientRow()));
+    $('#calc-btn')?.addEventListener('click', calculate);
+    $('#cube-btn')?.addEventListener('click', () => {
+      const t = els.resultSummary?.querySelector('.text-orange-600');
+      if (t && $('#cube-total')) $('#cube-total').value = parseNum(t.textContent);
+      switchTab('portion');
+      calculateCube();
+    });
+    $('#modal-save')?.addEventListener('click', saveCustomNutrient);
+    $('#modal-cancel')?.addEventListener('click', closeNutrientModal);
+    els.nutrientModal?.addEventListener('click', (e) => { if (e.target === els.nutrientModal) closeNutrientModal(); });
+    els.mobileMenuBtn?.addEventListener('click', () => els.mobileNav?.classList.toggle('hidden'));
+
+    calculate();
+    updateGrowth();
+    calculateCube();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();

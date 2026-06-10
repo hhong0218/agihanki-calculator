@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아기한끼 계산기 | 유아식 1끼 분량·철분·영양 계산 | BabyMeal</title>
+  <meta name="description" content="3인분 이유식을 1끼로 정확히 계산하고 철분·열량·단백질을 자동 분석하세요. 월령별 권장량, 성장곡선, 큐브 소분, 철분 흡수 가이드. 한국 부모를 위한 무료 YMYL 건강 도구.">
+  <meta name="keywords" content="유아식 분량 계산기, 이유식 1끼, 이유식 철분, 아기 철분, 이유식 영양, 월령별 이유식, 이유식 소분, 아기한끼, BabyMeal">
+  <meta name="author" content="아기한끼 계산기">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://agihanki-calculato.pages.dev/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="아기한끼 계산기 | 이유식 1끼 · 철분 · 영양">
+  <meta property="og:description" content="2~3인분 레시피를 1끼로 변환 + 철분 자동 계산. 성장곡선·소분 가이드 포함.">
+  <meta property="og:url" content="https://agihanki-calculato.pages.dev/">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="아기한끼 계산기">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="아기한끼 계산기 BabyMeal">
+  <meta name="twitter:description" content="이유식 분량·철분·영양 계산기">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: {
+      peach:'#ffd4b8', mint:'#b8e8d4', lavender:'#e8d4f0', coral:'#ff8a7a', sage:'#7eb89a', cream:'#fff8f0'
+    }}}};
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- AdSense: 승인 후 client ID 교체
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+  -->
+
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"아기한끼 계산기","alternateName":"BabyMeal Calculator","url":"https://agihanki-calculato.pages.dev/","applicationCategory":"HealthApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"description":"유아식 1끼 분량·영양·철분 계산 도구"}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"HowTo","name":"이유식 3인분을 1끼로 계산하고 철분 확인하기","step":[
+    {"@type":"HowToStep","name":"아기 정보 입력","text":"월령과 체중(kg)을 입력합니다."},
+    {"@type":"HowToStep","name":"재료 입력","text":"재료명 자동완성으로 선택하고 양을 입력합니다."},
+    {"@type":"HowToStep","name":"인분 설정","text":"원래 3인분, 목표 1끼로 설정합니다."},
+    {"@type":"HowToStep","name":"결과 확인","text":"변환 분량, 철분, 탄단지 차트를 확인합니다."}
+  ]}
+  </script>
+</head>
+<body class="text-gray-800 antialiased">
+
+  <div class="ad-placeholder mx-4 mt-2 max-w-5xl lg:mx-auto" aria-label="광고">AdSense 상단</div>
+
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-orange-100 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3">
+      <div class="flex items-center justify-between">
+        <a href="#calculator" class="flex items-center gap-2">
+          <span class="text-3xl">🍼</span>
+          <div>
+            <p class="text-xs text-orange-500 font-semibold">BabyMeal Calculator</p>
+            <h1 class="text-lg sm:text-xl font-bold">아기한끼 계산기</h1>
+            <p class="text-xs text-gray-500 hidden sm:block">이유식 1끼 정확 계산 · 영양 · 철분 관리</p>
+          </div>
+        </a>
+        <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-orange-50" aria-label="메뉴">☰</button>
+      </div>
+      <nav class="hidden md:flex flex-wrap gap-2 mt-3" role="tablist">
+        <button class="nav-tab active px-3 py-2 rounded-full text-sm font-medium" data-tab="calculator" aria-selected="true">계산기</button>
+        <button class="nav-tab px-3 py-2 rounded-full text-sm bg-orange-50" data-tab="growth">월령·성장</button>
+        <button class="nav-tab px-3 py-2 rounded-full text-sm bg-orange-50" data-tab="portion">소분·냉동</button>
+        <button class="nav-tab px-3 py-2 rounded-full text-sm bg-orange-50" data-tab="presets">프리셋</button>
+        <button class="nav-tab px-3 py-2 rounded-full text-sm bg-orange-50" data-tab="iron">철분가이드</button>
+        <button class="nav-tab px-3 py-2 rounded-full text-sm bg-orange-50" data-tab="faq">FAQ</button>
+      </nav>
+      <nav id="mobile-nav" class="hidden md:hidden flex flex-col gap-1 mt-2 pb-2">
+        <button class="nav-tab active px-4 py-3 rounded-xl text-sm" data-tab="calculator">📊 계산기</button>
+        <button class="nav-tab px-4 py-3 rounded-xl text-sm bg-orange-50" data-tab="growth">📈 월령·성장</button>
+        <button class="nav-tab px-4 py-3 rounded-xl text-sm bg-orange-50" data-tab="portion">🧊 소분·냉동</button>
+        <button class="nav-tab px-4 py-3 rounded-xl text-sm bg-orange-50" data-tab="presets">🍲 프리셋</button>
+        <button class="nav-tab px-4 py-3 rounded-xl text-sm bg-orange-50" data-tab="iron">🩸 철분가이드</button>
+        <button class="nav-tab px-4 py-3 rounded-xl text-sm bg-orange-50" data-tab="faq">❓ FAQ</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+
+    <!-- ══ 계산기 ══ -->
+    <section id="panel-calculator" class="tab-panel active" role="tabpanel">
+      <article class="mb-6 bg-gradient-to-r from-orange-50 to-cream rounded-2xl p-6 border border-orange-100">
+        <h2 class="text-2xl font-bold mb-2">이유식 3인분 → 1끼 정확 계산 + 철분·영양 분석</h2>
+        <p class="text-gray-600 leading-relaxed">
+          레시피 분량을 줄이는 것만큼 중요한 것이 <strong>철분·열량 균형</strong>입니다.
+          식약처 기반 영양 DB로 1끼 열량·단백질·<strong class="text-red-600">철분</strong>을 자동 계산하고,
+          아기 <strong>체중(kg)</strong>에 맞춘 권장량과 비교하세요.
+          <a href="#iron" class="text-red-600 underline" data-tab="iron">철분 가이드</a> ·
+          <a href="#growth" class="text-sage underline" data-tab="growth">성장곡선</a>
+        </p>
+      </article>
+
+      <div class="grid lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-5">
+          <div class="bg-white rounded-2xl p-5 sm:p-6 border border-orange-100 shadow-sm">
+            <h2 class="text-xl font-bold mb-4">👶 아기 정보 &amp; 레시피</h2>
+            <div class="grid sm:grid-cols-2 gap-4 mb-4">
+              <label><span class="text-sm text-gray-600">월령</span>
+                <select id="age-select" class="mt-1 w-full px-4 py-3 rounded-xl border border-orange-200">
+                  <option value="6m">6개월</option>
+                  <option value="7-8m">7~8개월</option>
+                  <option value="9-11m" selected>9~11개월</option>
+                  <option value="12-18m">12~18개월</option>
+                  <option value="19-24m">19~24개월+</option>
+                </select>
+              </label>
+              <label><span class="text-sm text-gray-600">현재 체중 (kg)</span>
+                <input type="number" id="baby-weight" class="mt-1 w-full px-4 py-3 rounded-xl border border-orange-200" placeholder="예: 9.2" min="4" max="20" step="0.1" value="9.2">
+              </label>
+            </div>
+            <label class="block mb-4"><span class="text-sm text-gray-600">레시피 이름</span>
+              <input type="text" id="recipe-name" class="mt-1 w-full px-4 py-3 rounded-xl border border-orange-200" value="소고기야채죽">
+            </label>
+            <div class="grid sm:grid-cols-2 gap-4 mb-5">
+              <div><span class="text-sm text-gray-600">원래 인분</span>
+                <div class="flex gap-2 mt-1"><input type="number" id="original-servings" class="w-20 px-3 py-2 rounded-lg border text-center font-bold" value="3" min="0.5" step="0.5">
+                <input type="range" id="original-slider" class="flex-1" min="1" max="10" step="0.5" value="3"></div>
+              </div>
+              <div><span class="text-sm text-gray-600">목표 끼 수</span>
+                <div class="flex gap-2 mt-1"><input type="number" id="target-servings" class="w-20 px-3 py-2 rounded-lg border text-center font-bold text-orange-600" value="1" min="0.5" step="0.5">
+                <input type="range" id="target-slider" class="flex-1" min="0.5" max="10" step="0.5" value="1"></div>
+              </div>
+            </div>
+
+            <h3 class="font-semibold mb-2">재료 (자동완성 · 영양 DB 연동)</h3>
+            <div class="ingredient-table-wrap overflow-x-auto">
+              <table class="w-full text-sm min-w-[420px]">
+                <thead><tr class="text-gray-500 border-b border-orange-100">
+                  <th class="pb-2 text-left">재료명</th><th class="pb-2 w-20">양</th><th class="pb-2 w-20">단위</th><th class="pb-2 w-24"></th>
+                </tr></thead>
+                <tbody id="ingredient-body"></tbody>
+              </table>
+            </div>
+            <button type="button" id="add-ingredient" class="mt-3 w-full py-2.5 rounded-xl border-2 border-dashed border-orange-200 text-orange-500 text-sm font-medium hover:bg-orange-50">+ 재료 추가</button>
+            <div class="flex flex-wrap gap-3 mt-5">
+              <button type="button" id="calc-btn" class="flex-1 py-3 bg-gradient-to-r from-orange-400 to-coral text-white font-bold rounded-xl shadow">계산하기</button>
+              <button type="button" id="cube-btn" class="py-3 px-5 bg-mint/50 text-teal-800 font-semibold rounded-xl text-sm">🧊 5끼 큐브</button>
+            </div>
+          </div>
+
+          <div id="result-section" class="space-y-5 hidden">
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-orange-100 shadow-sm">
+              <h2 class="text-xl font-bold mb-4">📊 1끼 변환 결과</h2>
+              <div id="result-summary"></div>
+              <div class="overflow-x-auto mt-4">
+                <table class="w-full text-sm">
+                  <thead><tr class="text-gray-500 border-b-2 border-orange-100">
+                    <th class="py-2 px-2 text-left">재료</th><th class="py-2 px-2">원래</th>
+                    <th class="py-2 px-2 text-orange-600">변환</th><th class="py-2 px-2 hidden sm:table-cell">철분</th>
+                  </tr></thead>
+                  <tbody id="result-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-orange-100 shadow-sm">
+              <h2 class="text-xl font-bold mb-2">🥗 1끼 영양소 분석</h2>
+              <div id="nutrition-panel"></div>
+              <div id="absorption-badge" class="my-4 flex flex-wrap gap-2"></div>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div><p class="text-sm font-medium text-gray-600 mb-2">탄단지 비율</p>
+                  <canvas id="macro-chart" height="200"></canvas></div>
+                <div><p class="text-sm font-medium text-gray-600 mb-2">권장량 대비 (%)</p>
+                  <div id="progress-bars" class="space-y-4"></div></div>
+              </div>
+            </div>
+
+            <div id="iron-highlight"></div>
+          </div>
+        </div>
+
+        <aside class="space-y-5">
+          <div class="ad-placeholder" aria-label="광고">AdSense 사이드</div>
+          <div class="bg-white rounded-2xl p-5 border border-orange-100">
+            <h3 class="font-bold mb-3">🕐 최근 계산</h3>
+            <div id="recent-list" class="space-y-2"></div>
+          </div>
+          <div class="bg-red-50 rounded-2xl p-5 border border-red-100">
+            <h3 class="font-bold text-red-800 mb-2">🩸 철분 빠른 팁</h3>
+            <ul class="text-sm text-gray-700 space-y-2">
+              <li>· 헴철: 소고기, 닭, 달걀노른자</li>
+              <li>· 비타민C와 함께 → 흡수 2~3배</li>
+              <li>· 우유는 철분 식사 1~2시간 후</li>
+            </ul>
+            <a href="#iron" class="inline-block mt-3 text-sm text-red-600 underline" data-tab="iron">철분 가이드 보기 →</a>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ══ 월령·성장 ══ -->
+    <section id="panel-growth" class="tab-panel" role="tabpanel">
+      <article class="mb-6">
+        <h2 class="text-2xl font-bold mb-2">월령별 권장량 &amp; 성장곡선 가이드</h2>
+        <p class="text-gray-600">질병관리청·한국영양학회 기준 참고량. 2017 KDCA 성장도표로 체중 백분위를 추정합니다.</p>
+      </article>
+      <div class="bg-white rounded-2xl border border-orange-100 overflow-x-auto mb-6">
+        <table class="w-full text-sm min-w-[600px]">
+          <thead class="bg-orange-50"><tr class="text-left text-gray-600">
+            <th class="py-3 px-3">단계</th><th class="py-3 px-3">1끼(g)</th><th class="py-3 px-3">1끼(kcal)</th>
+            <th class="py-3 px-3">하루</th><th class="py-3 px-3">철분/일</th><th class="py-3 px-3">1끼 철분</th><th class="py-3 px-3">농도</th>
+          </tr></thead>
+          <tbody id="guide-table-body"></tbody>
+        </table>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-orange-100 overflow-x-auto mb-6">
+        <h3 class="font-bold text-lg p-4 pb-2">성장도표 상세 — 체중·신장 P50 (남·여, 6~24개월)</h3>
+        <table class="w-full text-sm min-w-[720px]">
+          <thead class="bg-orange-50"><tr class="text-left text-gray-600">
+            <th class="py-2 px-2">월령</th>
+            <th class="py-2 px-2">남 체중</th><th class="py-2 px-2">여 체중</th>
+            <th class="py-2 px-2">남 신장</th><th class="py-2 px-2">여 신장</th>
+          </tr></thead>
+          <tbody id="growth-chart-table"></tbody>
+        </table>
+        <p class="text-xs text-gray-400 p-4 pt-2">출처: 2017 소아청소년 성장도표 (질병관리청)</p>
+      </div>
+
+      <div class="bg-lavender/20 rounded-2xl p-6 border border-lavender mb-6">
+        <h3 class="font-bold text-lg mb-3">2017 성장도표 해석 가이드</h3>
+        <div class="grid sm:grid-cols-3 gap-4 text-sm">
+          <div class="bg-white rounded-xl p-4"><strong class="text-red-600">P3~15</strong><p class="text-gray-600 mt-1">저체중 경계. 섭취량·성장 모니터링, 소아과 상담 권장.</p></div>
+          <div class="bg-white rounded-xl p-4"><strong class="text-green-600">P15~85</strong><p class="text-gray-600 mt-1">정상 범위. 월령별 권장량 기준 식단 구성.</p></div>
+          <div class="bg-white rounded-xl p-4"><strong class="text-amber-600">P85~97</strong><p class="text-gray-600 mt-1">과체중 경계. 과다 열량 주의, 균형 식단 유지.</p></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-orange-100 mb-6">
+        <h3 class="font-bold mb-4">우리 아이 체중·신장 → 백분위 추정</h3>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <label><span class="text-sm text-gray-600">월령</span>
+            <select id="growth-age" class="mt-1 w-full px-4 py-3 rounded-xl border">
+              <option value="6m">6개월</option><option value="7-8m">7~8개월</option>
+              <option value="9-11m" selected>9~11개월</option><option value="12-18m">12~18개월</option>
+              <option value="19-24m">19~24개월+</option>
+            </select>
+          </label>
+          <label><span class="text-sm text-gray-600">체중 (kg)</span>
+            <input type="number" id="growth-weight" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="9.2" step="0.1">
+          </label>
+          <label><span class="text-sm text-gray-600">신장 (cm)</span>
+            <input type="number" id="growth-height" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="74.0" step="0.1" min="50" max="110">
+          </label>
+          <label><span class="text-sm text-gray-600">성별</span>
+            <select id="growth-gender" class="mt-1 w-full px-4 py-3 rounded-xl border">
+              <option value="boy">남아</option><option value="girl">여아</option>
+            </select>
+          </label>
+        </div>
+        <div id="growth-result"></div>
+      </div>
+      <p class="text-xs text-gray-400">출처: 2017 소아청소년 성장도표(질병관리청), 한국인 영양소 섭취기준. 의료 진단을 대체하지 않습니다.</p>
+    </section>
+
+    <!-- ══ 소분·냉동 ══ -->
+    <section id="panel-portion" class="tab-panel" role="tabpanel">
+      <article class="mb-6">
+        <h2 class="text-2xl font-bold mb-2">소분·냉동 보관 계산기</h2>
+        <p class="text-gray-600">만든 양을 큐브 트레이(15ml/30ml)에 소분해 낭비를 줄이세요.</p>
+      </article>
+      <div class="bg-white rounded-2xl p-6 border border-mint/50 mb-6">
+        <div class="grid sm:grid-cols-3 gap-4 mb-4">
+          <label><span class="text-sm text-gray-600">총량 (g/ml)</span>
+            <input type="number" id="cube-total" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="250"></label>
+          <label><span class="text-sm text-gray-600">큐브 용량</span>
+            <select id="cube-size" class="mt-1 w-full px-4 py-3 rounded-xl border">
+              <option value="15">15ml (초기)</option><option value="30">30ml (후기)</option>
+            </select></label>
+          <label><span class="text-sm text-gray-600">나눌 끼 수</span>
+            <input type="number" id="cube-meals" class="mt-1 w-full px-4 py-3 rounded-xl border" value="5" min="1"></label>
+        </div>
+        <div id="cube-result"></div>
+      </div>
+      <div class="ad-placeholder mb-6" aria-label="광고">AdSense 본문</div>
+    </section>
+
+    <!-- ══ 프리셋 ══ -->
+    <section id="panel-presets" class="tab-panel" role="tabpanel">
+      <article class="mb-6">
+        <h2 class="text-2xl font-bold mb-2">프리셋 레시피 (철분 강조)</h2>
+        <p class="text-gray-600">클릭하면 <a href="#calculator" class="text-orange-600 underline" data-tab="calculator">메인 계산기</a>에 로드됩니다.</p>
+      </article>
+      <div id="preset-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- ══ 철분가이드 ══ -->
+    <section id="panel-iron" class="tab-panel" role="tabpanel">
+      <article class="mb-6">
+        <h2 class="text-2xl font-bold mb-2">철분 특화 가이드 — 아기한끼 차별점</h2>
+        <p class="text-gray-600">이유식 시기 철분 결핍은 빈혈·인지발달에 영향을 줄 수 있습니다. 헴철·비헴철 구분과 흡수 최적화가 핵심입니다.</p>
+        <p id="db-version-badge" class="text-xs text-gray-400 mt-2"></p>
+      </article>
+
+      <div id="iron-age-facts" class="grid sm:grid-cols-2 gap-4 mb-6"></div>
+
+      <div class="bg-red-50 rounded-2xl p-5 border border-red-100 mb-6">
+        <h3 class="font-bold text-red-800 mb-2">⚠ 철 결핍 의심 신호 (참고용)</h3>
+        <ul id="iron-deficiency-signs" class="space-y-1"></ul>
+        <p class="text-xs text-gray-500 mt-3">위 증상이 있으면 반드시 소아과 검진·혈액검사를 받으세요.</p>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-orange-100 overflow-x-auto mb-6">
+        <table class="w-full text-sm min-w-[500px]">
+          <thead class="bg-red-50"><tr class="text-left">
+            <th class="py-3 px-3">식품</th><th class="py-3 px-3">철분/100g</th><th class="py-3 px-3">유형</th>
+            <th class="py-3 px-3">흡수율</th><th class="py-3 px-3">팁</th>
+          </tr></thead>
+          <tbody id="iron-guide-table"></tbody>
+        </table>
+      </div>
+
+      <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 border border-red-100 mb-6">
+        <h3 class="font-bold text-lg text-red-800 mb-2">📅 월령별 철분 중심 7일 식단 예시</h3>
+        <p class="text-sm text-gray-600 mb-4">1끼 기준 참고 메뉴입니다. ★는 고철분·헴철 식품, 「계산기 로드」로 분량을 바로 확인하세요.</p>
+        <div id="iron-meal-plan-tabs" class="flex flex-wrap gap-2 mb-4"></div>
+        <div id="iron-meal-plan-meta" class="mb-3"></div>
+        <div class="bg-white rounded-xl border border-orange-100 overflow-x-auto">
+          <table class="w-full text-sm min-w-[560px]">
+            <thead class="bg-orange-50"><tr class="text-left text-gray-600">
+              <th class="py-2 px-3">요일</th><th class="py-2 px-3">메뉴 (1끼)</th>
+              <th class="py-2 px-3">철분 원천</th><th class="py-2 px-3">비타민C</th><th class="py-2 px-3">메모</th>
+            </tr></thead>
+            <tbody id="iron-meal-plan-body"></tbody>
+          </table>
+        </div>
+        <p class="text-xs text-gray-500 mt-3">교육용 예시이며 아기 알레르기·식욕에 맞게 조절하세요. 의료·영양 상담을 대체하지 않습니다.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6 mb-6">
+        <div><h3 class="font-bold text-green-800 mb-3">✅ 흡수 최적화 조합</h3><div id="iron-combos-good" class="space-y-3"></div></div>
+        <div><h3 class="font-bold text-amber-800 mb-3">⚠ 흡수 저해 조합</h3><div id="iron-combos-bad" class="space-y-3"></div></div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-red-100">
+        <h3 class="font-bold text-lg mb-3">체중 기반 철분 계산 로직</h3>
+        <pre class="text-xs bg-gray-50 rounded-xl p-4 mb-4 overflow-x-auto border border-gray-200"><code>function calculateIronNeeds(ageMonths, weightKg) {
+  let dailyIron = (ageMonths &lt; 7) ? 0.27 : (ageMonths &lt;= 12) ? 11 : 7;
+  dailyIron = Math.max(dailyIron, weightKg * 1.0);  // 체중 보정
+  const oneMealIron = (dailyIron * 0.45) / 3;        // 이유식 1끼 ≈ 45%, 3끼 분할
+  return { dailyIron, oneMealIron };
+}</code></pre>
+        <ol class="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+          <li><strong>기본 권장 (한국영양학회 2020):</strong> 0~6M 0.27mg · 7~12M 11mg · 1~3세 7mg/일</li>
+          <li><strong>체중 보정:</strong> <code>max(기본권장, 체중kg × 1.0)</code></li>
+          <li><strong>1끼 목표:</strong> <code>(일일권장 × 45%) ÷ 3</code> — 이유식이 하루 철분의 약 45%를 담당한다고 가정</li>
+          <li><strong>흡수 추정:</strong> 헴철 25%, 비헴철 5%, 비타민C 동반 시 15%, 우유/칼슘 동반 시 50% 감소</li>
+          <li><strong>영양 DB:</strong> 식약처 국가표준식품성분표 제10차 (100g 기준, 25종)</li>
+          <li><strong>성장 백분위:</strong> P15 미만 시 영양사·소아과 상담 권장 (<a href="#growth" class="text-orange-600 underline" data-tab="growth">성장 탭</a>)</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ══ FAQ ══ -->
+    <section id="panel-faq" class="tab-panel" role="tabpanel">
+      <article class="mb-6">
+        <h2 class="text-2xl font-bold mb-2">자주 묻는 질문 (FAQ)</h2>
+        <p class="text-gray-600">YMYL 건강 정보 — 아래 내용은 교육 목적이며 의료 상담을 대체하지 않습니다.</p>
+      </article>
+      <div id="faq-list"></div>
+    </section>
+
+  </main>
+
+  <!-- 영양 직접입력 모달 -->
+  <div id="nutrient-modal" class="hidden fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" role="dialog" aria-labelledby="modal-title">
+      <h3 id="modal-title" class="text-lg font-bold mb-4">영양값 직접 입력 (100g 기준)</h3>
+      <p class="text-xs text-gray-500 mb-4">식약처 식품영양성분표를 참고하세요. DB에 없는 재료용.</p>
+      <label class="block mb-3"><span class="text-sm">재료명</span>
+        <input type="text" id="modal-food-name" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <label class="text-sm">열량(kcal)<input type="number" id="modal-kcal" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0"></label>
+        <label class="text-sm">단백질(g)<input type="number" id="modal-protein" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
+        <label class="text-sm">탄수화물(g)<input type="number" id="modal-carbs" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
+        <label class="text-sm">지방(g)<input type="number" id="modal-fat" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
+        <label class="text-sm">식이섬유(g)<input type="number" id="modal-fiber" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
+        <label class="text-sm text-red-600 font-medium">철분(mg)<input type="number" id="modal-iron" class="mt-1 w-full px-3 py-2 border border-red-200 rounded-lg" min="0" step="0.1"></label>
+      </div>
+      <div class="flex gap-3">
+        <button type="button" id="modal-save" class="flex-1 py-2.5 bg-orange-500 text-white font-bold rounded-xl">저장</button>
+        <button type="button" id="modal-cancel" class="py-2.5 px-5 border rounded-xl">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="mt-12 border-t-4 border-orange-200 bg-orange-50">
+    <div class="max-w-5xl mx-auto px-4 py-8">
+      <div class="bg-white rounded-2xl p-6 border-2 border-red-300 mb-6 text-center">
+        <p class="text-lg font-bold text-red-700 mb-2">⚕️ YMYL 면책 조항 (Your Money Your Life)</p>
+        <p class="text-gray-700 leading-relaxed text-sm sm:text-base">
+          본 사이트는 <strong>교육·참고 목적</strong>의 일반 건강 정보를 제공합니다.
+          영양소·철분·성장 백분위 계산은 표준 데이터 기반 <strong>추정치</strong>이며,
+          <strong>의료 진단·처방·치료를 대체하지 않습니다</strong>.
+          아기의 건강·영양·알레르기 관련 결정은 반드시 <strong>소아과 전문의 또는 공인 영양사</strong>와 상담하세요.
+        </p>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-6 text-sm text-gray-600 mb-6">
+        <div>
+          <h3 class="font-bold mb-2">출처</h3>
+          <ul class="space-y-1 text-xs sm:text-sm">
+            <li>· 식품의약품안전처 국가표준식품성분표</li>
+            <li>· 질병관리청 이유식·성장도표 (2017)</li>
+            <li>· 한국영양학회 한국인 영양소 섭취기준 (2020)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-bold mb-2">배포</h3>
+          <p class="text-xs sm:text-sm">Cloudflare Pages 정적 배포 ·
+            <a href="https://github.com/hhong0218/agihanki-calculato" class="text-orange-600 hover:underline" target="_blank" rel="noopener">GitHub</a>
+          </p>
+        </div>
+      </div>
+      <p class="text-center text-xs text-gray-500">© 2026 아기한끼 계산기 (BabyMeal Calculator)</p>
+    </div>
+  </footer>
+
+  <script src="js/nutrient-db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
