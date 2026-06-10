@@ -65,3 +65,19 @@ input[type="range"] { accent-color: #ff6b6b; }
 @media (max-width: 640px) {
   .ingredient-table-wrap { -webkit-overflow-scrolling: touch; }
 }
+
+@media print {
+  body { background: #fff; }
+  .ad-placeholder, .no-print, header, footer, aside,
+  #mobile-menu-btn, #mobile-nav, #add-ingredient,
+  #calc-btn, #cube-btn, .nav-tab, #nutrient-modal { display: none !important; }
+  .tab-panel { display: none !important; }
+  #panel-calculator { display: block !important; }
+  #result-section { display: block !important; }
+  .print-result-card, #iron-highlight {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  .bg-gradient-to-r, .bg-red-50, .bg-orange-50 { background: #fff !important; }
+}

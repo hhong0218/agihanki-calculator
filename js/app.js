@@ -54,16 +54,31 @@
 
   const STORAGE_KEY = 'babyMealCalc_v2';
   const CUSTOM_NUTRIENT_KEY = 'babyMealCustomNutrients';
+  const FORM_STATE_KEY = 'babyMealFormState';
   let macroChart = null;
   let showTabFn = null;
   let customNutrients = {};
   let activeModalRow = null;
+  let dbEntriesCache = null;
+  let chartJsPromise = null;
+  let lastCalcSnapshot = null;
+  let syncingWeight = false;
 
   // ─── 유틸 ───────────────────────────────────────────────
 
   const FRACTIONS = [[1,8],[1,6],[1,5],[1,4],[1,3],[1,2],[2,3],[3,4]];
 
   function parseNum(v) { const n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? 0 : n; }
+
+  function debounce(fn, ms) {
+    let timer;
+    return function (...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), ms);
+    };
+  }
+
+  function invalidateDbCache() { dbEntriesCache = null; }
 
   function $(s, c) { return (c || document).querySelector(s); }
   function $$(s, c) { return Array.from((c || document).querySelectorAll(s)); }
@@ -99,6 +114,7 @@
   // ─── DB 매칭 (fuzzy) ─────────────────────────────────────
 
   function getAllDbEntries() {
+    if (dbEntriesCache) return dbEntriesCache;
     const entries = [];
     Object.keys(nutrientDB).forEach((key) => {
       entries.push({ key, label: key.replace(/_/g,' '), data: nutrientDB[key] });
@@ -107,6 +123,7 @@
     Object.keys(customNutrients).forEach((key) => {
       entries.push({ key: '__custom__'+key, label: key, data: customNutrients[key], custom: true });
     });
+    dbEntriesCache = entries;
     return entries;
   }
 
@@ -322,6 +339,7 @@
     nutrientModal: $('#nutrient-modal'),
     mobileMenuBtn: $('#mobile-menu-btn'),
     mobileNav: $('#mobile-nav'),
+    ironGradeBadge: $('#iron-grade-badge'),
   };
 
   // ─── 탭 ─────────────────────────────────────────────────
@@ -380,13 +398,13 @@
     nameInput.addEventListener('input', () => {
       delete tr.dataset.dbKey; delete tr.dataset.customName;
       showAutocomplete(nameInput, acList);
-      calculate();
+      calculateDebounced();
     });
     nameInput.addEventListener('blur', () => setTimeout(() => acList.classList.add('hidden'), 200));
     nameInput.addEventListener('focus', () => showAutocomplete(nameInput, acList));
 
     tr.querySelectorAll('.ing-amount, .ing-unit').forEach((el) => {
-      el.addEventListener('input', calculate);
+      el.addEventListener('input', calculateDebounced);
       el.addEventListener('change', calculate);
     });
     $('.remove-row', tr).addEventListener('click', () => { tr.remove(); calculate(); });
@@ -452,6 +470,7 @@
   function loadCustomNutrients() {
     try { customNutrients = JSON.parse(localStorage.getItem(CUSTOM_NUTRIENT_KEY) || '{}'); }
     catch (_) { customNutrients = {}; }
+    invalidateDbCache();
   }
 
   function openNutrientModal(row) {
@@ -486,6 +505,7 @@
       note: '직접입력',
     };
     localStorage.setItem(CUSTOM_NUTRIENT_KEY, JSON.stringify(customNutrients));
+    invalidateDbCache();
     if (activeModalRow) {
       $('.ing-name', activeModalRow).value = name;
       activeModalRow.dataset.customName = name;
@@ -495,27 +515,52 @@
     calculate();
   }
 
-  // ─── Chart.js ─────────────────────────────────────────────
+  // ─── Chart.js (lazy load) ─────────────────────────────────
+
+  function loadChartJs() {
+    if (typeof Chart !== 'undefined') return Promise.resolve();
+    if (chartJsPromise) return chartJsPromise;
+    chartJsPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => { chartJsPromise = null; reject(new Error('Chart.js load failed')); };
+      document.head.appendChild(s);
+    });
+    return chartJsPromise;
+  }
 
   function renderMacroChart(protein, carbs, fat) {
-    if (!els.macroCanvas || typeof Chart === 'undefined') return;
-    const pK = protein * 4, cK = carbs * 4, fK = fat * 9;
-    const total = pK + cK + fK || 1;
-    if (macroChart) macroChart.destroy();
-    macroChart = new Chart(els.macroCanvas, {
-      type: 'pie',
-      data: {
-        labels: ['단백질', '탄수화물', '지방'],
-        datasets: [{ data: [pK, cK, fK], backgroundColor: ['#7eb89a', '#ffd4b8', '#e8d4f0'], borderWidth: 2 }],
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'bottom' },
-          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${Math.round(ctx.raw/total*100)}%` } },
+    if (!els.macroCanvas) return;
+    loadChartJs().then(() => {
+      if (typeof Chart === 'undefined') return;
+      const pK = protein * 4, cK = carbs * 4, fK = fat * 9;
+      const total = pK + cK + fK || 1;
+      if (macroChart) macroChart.destroy();
+      macroChart = new Chart(els.macroCanvas, {
+        type: 'pie',
+        data: {
+          labels: ['단백질', '탄수화물', '지방'],
+          datasets: [{ data: [pK, cK, fK], backgroundColor: ['#7eb89a', '#ffd4b8', '#e8d4f0'], borderWidth: 2 }],
         },
-      },
-    });
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${Math.round(ctx.raw/total*100)}%` } },
+          },
+        },
+      });
+    }).catch(() => {});
+  }
+
+  function getIronGrade(ironPct, absPct) {
+    const score = Math.max(ironPct, Math.round(absPct * 0.85));
+    if (score >= 80) return { grade: 'A', label: '철분 우수', color: 'bg-green-100 text-green-800 border-green-200' };
+    if (score >= 60) return { grade: 'B', label: '철분 양호', color: 'bg-blue-100 text-blue-800 border-blue-200' };
+    if (score >= 40) return { grade: 'C', label: '철분 보통', color: 'bg-amber-100 text-amber-800 border-amber-200' };
+    return { grade: 'D', label: '철분 부족', color: 'bg-red-100 text-red-800 border-red-200' };
   }
 
   function renderProgressBars(totals, rec) {
@@ -640,12 +685,32 @@
       els.absorptionBadge.innerHTML = badges.join(' ') || '<span class="text-gray-400 text-sm">재료를 추가하면 흡수 팁이 표시됩니다</span>';
     }
 
+    const ironPct = rec.iron > 0 ? Math.round(totals.iron / rec.iron * 100) : 0;
+    const absPct = rec.iron > 0 ? Math.round(absorbedIron / rec.iron * 100) : 0;
+    const grade = getIronGrade(ironPct, absPct);
+    if (els.ironGradeBadge) {
+      els.ironGradeBadge.innerHTML =
+        `<span class="inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold ${grade.color}">
+          <span class="text-lg">${grade.grade}</span> ${grade.label} · 함량 ${ironPct}% · 흡수추정 ${absPct}%
+        </span>`;
+    }
+
+    lastCalcSnapshot = {
+      name: $('#recipe-name')?.value || '레시피',
+      age: age.label,
+      weight: getBabyWeightKg(age),
+      orig, target, totals, rec, absorbedIron, ironPct, absPct, grade: grade.label,
+      items: nutItems.map((it) => ({ name: it.name, grams: it.grams, iron: it.iron })),
+    };
+
     renderMacroChart(totals.protein, totals.carbs, totals.fat);
     renderProgressBars(totals, rec);
     els.resultSection?.classList.remove('hidden');
     saveRecent();
-    updateGrowth();
+    saveFormState();
   }
+
+  const calculateDebounced = debounce(calculate, 180);
 
   // ─── 성장 · 권장량 ───────────────────────────────────────
 
@@ -894,7 +959,84 @@
       </details>`).join('');
   }
 
-  // ─── localStorage ─────────────────────────────────────────
+  // ─── localStorage · 폼 상태 · 복사/인쇄 ─────────────────
+
+  function saveFormState() {
+    const state = {
+      age: $('#age-select')?.value,
+      weight: parseNum($('#baby-weight')?.value),
+      recipeName: $('#recipe-name')?.value,
+      orig: parseNum($('#original-servings')?.value),
+      target: parseNum($('#target-servings')?.value),
+      growthAge: $('#growth-age')?.value,
+      growthWeight: parseNum($('#growth-weight')?.value),
+      growthHeight: parseNum($('#growth-height')?.value),
+      growthGender: $('#growth-gender')?.value,
+      ingredients: getIngredients(),
+    };
+    try { localStorage.setItem(FORM_STATE_KEY, JSON.stringify(state)); } catch (_) {}
+  }
+
+  function loadFormState() {
+    try {
+      const state = JSON.parse(localStorage.getItem(FORM_STATE_KEY) || 'null');
+      if (!state) return false;
+      if (state.age) $('#age-select').value = state.age;
+      if (state.weight) $('#baby-weight').value = state.weight;
+      if (state.recipeName) $('#recipe-name').value = state.recipeName;
+      if (state.orig) { $('#original-servings').value = state.orig; $('#original-slider').value = state.orig; }
+      if (state.target) { $('#target-servings').value = state.target; $('#target-slider').value = state.target; }
+      if (state.growthAge) $('#growth-age').value = state.growthAge;
+      if (state.growthWeight) $('#growth-weight').value = state.growthWeight;
+      if (state.growthHeight) $('#growth-height').value = state.growthHeight;
+      if (state.growthGender) $('#growth-gender').value = state.growthGender;
+      if (state.ingredients?.length) setIngredients(state.ingredients);
+      return true;
+    } catch (_) { return false; }
+  }
+
+  function syncWeightFields(fromId, toId) {
+    if (syncingWeight) return;
+    const from = $(fromId), to = $(toId);
+    if (!from || !to) return;
+    syncingWeight = true;
+    to.value = from.value;
+    syncingWeight = false;
+  }
+
+  function buildCopyText() {
+    if (!lastCalcSnapshot) return '';
+    const s = lastCalcSnapshot;
+    const lines = [
+      `[아기한끼] ${s.name}`,
+      `월령: ${s.age} · 체중: ${s.weight}kg · ${s.orig}인분 → ${s.target}끼`,
+      `열량 ${formatPretty(s.totals.kcal)}kcal · 단백질 ${formatPretty(s.totals.protein)}g · 철분 ${formatPretty(s.totals.iron)}mg (권장 ${s.rec.iron}mg, ${s.ironPct}%)`,
+      `흡수 추정 철분: ${formatPretty(s.absorbedIron)}mg (${s.absPct}%) · ${s.grade}`,
+      '재료:',
+      ...s.items.map((it) => `  - ${it.name}: ${formatPretty(it.grams)}g (철 ${formatPretty(it.iron)}mg)`),
+      'https://agihanki-calculato.pages.dev/',
+    ];
+    return lines.join('\n');
+  }
+
+  async function copyResult() {
+    const text = buildCopyText();
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      const btn = $('#copy-result-btn');
+      if (btn) { const orig = btn.textContent; btn.textContent = '✓ 복사됨'; setTimeout(() => { btn.textContent = orig; }, 2000); }
+    } catch (_) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+  }
+
+  function printResult() { window.print(); }
 
   function saveRecent() {
     const entry = {
@@ -942,14 +1084,45 @@
     [['#original-servings','#original-slider'],['#target-servings','#target-slider']].forEach(([a,b]) => {
       const inp = $(a), sl = $(b);
       if (!inp || !sl) return;
-      inp.addEventListener('input', () => { sl.value = inp.value; calculate(); });
-      sl.addEventListener('input', () => { inp.value = sl.value; calculate(); });
+      inp.addEventListener('input', () => { sl.value = inp.value; calculateDebounced(); });
+      sl.addEventListener('input', () => { inp.value = sl.value; calculateDebounced(); });
     });
-    ['#age-select','#baby-weight','#recipe-name'].forEach((id) => {
+    ['#age-select','#recipe-name'].forEach((id) => {
       const el = $(id);
-      if (el) { el.addEventListener('input', calculate); el.addEventListener('change', calculate); }
+      if (el) { el.addEventListener('input', calculateDebounced); el.addEventListener('change', calculate); }
     });
-    ['#growth-age','#growth-weight','#growth-height','#growth-gender'].forEach((id) => {
+    const babyWeight = $('#baby-weight');
+    if (babyWeight) {
+      babyWeight.addEventListener('input', () => {
+        syncWeightFields('#baby-weight', '#growth-weight');
+        calculateDebounced();
+      });
+      babyWeight.addEventListener('change', () => {
+        syncWeightFields('#baby-weight', '#growth-weight');
+        calculate();
+        updateGrowth();
+      });
+    }
+    const growthWeight = $('#growth-weight');
+    if (growthWeight) {
+      growthWeight.addEventListener('input', () => {
+        syncWeightFields('#growth-weight', '#baby-weight');
+        updateGrowth();
+      });
+      growthWeight.addEventListener('change', () => {
+        syncWeightFields('#growth-weight', '#baby-weight');
+        updateGrowth();
+        calculate();
+      });
+    }
+    const ageSelect = $('#age-select');
+    if (ageSelect) {
+      ageSelect.addEventListener('change', () => {
+        $('#growth-age').value = ageSelect.value;
+        updateGrowth();
+      });
+    }
+    ['#growth-age','#growth-height','#growth-gender'].forEach((id) => {
       const el = $(id);
       if (el) { el.addEventListener('input', updateGrowth); el.addEventListener('change', updateGrowth); }
     });
@@ -984,15 +1157,22 @@
     renderRecent();
     injectFaqSchema();
 
-    setIngredients([
-      { db: '멥쌀', amount: 60, name: '멥쌀' },
-      { db: '소고기_다짐육', amount: 45, name: '소고기 다짐육' },
-      { db: '당근', amount: 30, name: '당근' },
-      { db: '브로콜리', amount: 30, name: '브로콜리' },
-    ]);
+    const restored = loadFormState();
+    if (!restored) {
+      setIngredients([
+        { db: '멥쌀', amount: 60, name: '멥쌀' },
+        { db: '소고기_다짐육', amount: 45, name: '소고기 다짐육' },
+        { db: '당근', amount: 30, name: '당근' },
+        { db: '브로콜리', amount: 30, name: '브로콜리' },
+      ]);
+      const bw = parseNum($('#baby-weight')?.value);
+      if (bw > 0 && $('#growth-weight')) $('#growth-weight').value = bw;
+    }
 
     $('#add-ingredient')?.addEventListener('click', () => els.ingredientBody.appendChild(createIngredientRow()));
     $('#calc-btn')?.addEventListener('click', calculate);
+    $('#copy-result-btn')?.addEventListener('click', copyResult);
+    $('#print-result-btn')?.addEventListener('click', printResult);
     $('#cube-btn')?.addEventListener('click', () => {
       const t = els.resultSummary?.querySelector('.text-orange-600');
       if (t && $('#cube-total')) $('#cube-total').value = parseNum(t.textContent);
