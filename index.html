@@ -360,10 +360,10 @@
 
       <div class="bg-white rounded-2xl p-6 border border-red-100">
         <h3 class="font-bold text-lg mb-3">체중 기반 철분 계산 로직</h3>
-        <pre class="text-xs bg-gray-50 rounded-xl p-4 mb-4 overflow-x-auto border border-gray-200"><code>function calculateIronNeeds(ageMonths, weightKg) {
+        <pre class="text-xs bg-gray-50 rounded-xl p-4 mb-4 overflow-x-auto border border-gray-200"><code>function calculateIronNeeds(ageMonths, weightKg, mealsPerDay) {
   let dailyIron = (ageMonths &lt; 7) ? 0.27 : (ageMonths &lt;= 12) ? 11 : 7;
   dailyIron = Math.max(dailyIron, weightKg * 1.0);  // 체중 보정
-  const oneMealIron = (dailyIron * 0.45) / 3;        // 이유식 1끼 ≈ 45%, 3끼 분할
+  const oneMealIron = (dailyIron * 0.45) / mealsPerDay;  // 6M·1끼 / 7~11M·2끼 / 12M+·3끼
   return { dailyIron, oneMealIron };
 }</code></pre>
         <ol class="text-sm text-gray-700 space-y-2 list-decimal list-inside">
