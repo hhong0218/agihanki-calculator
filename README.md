@@ -25,6 +25,11 @@ npx serve .
 
 ## 배포 (Cloudflare Pages)
 
+**자동 배포**: main에 push하면 GitHub Actions가 자동 배포합니다 (`.github/workflows/deploy.yml`).
+레포 Secrets에 `CLOUDFLARE_API_TOKEN`(필수)과 `CLOUDFLARE_ACCOUNT_ID`가 등록되어 있어야 합니다.
+
+수동 배포:
+
 ```powershell
 # Windows
 .\scripts\deploy.ps1
@@ -40,27 +45,36 @@ npx wrangler pages deploy . --project-name=agihanki-calculator --branch=main
 ## 프로젝트 구조
 
 ```
-index.html          # SPA (6탭)
+index.html          # SPA (6탭) — 정적 FAQ + FAQPage/WebApplication/HowTo JSON-LD
+guide/              # SEO 가이드 3편 (철분/큐브/분량) — 인앱 데이터 기반
+privacy.html        # 개인정보처리방침 (AdSense 고지 포함)
+terms.html          # 이용약관 (YMYL 면책 특약)
+404.html            # soft-404 방지
+ads.txt             # AdSense pub ID placeholder
+sw.js               # Service Worker (network-first + 오프라인 폴백)
 css/style.css
 js/app.js           # 메인 로직
 js/nutrient-db.js   # 영양 DB·성장도표·철분 가이드
 manifest.json       # PWA
-scripts/deploy.ps1  # 배포 스크립트
-wrangler.toml
+og-image.png        # 1200×630 공유 썸네일
+scripts/deploy.ps1  # 수동 배포 스크립트
+.github/workflows/deploy.yml  # 자동 배포 (checkout@v6 + wrangler-action@v4)
 ```
 
-## 최근 완료 (2026-06-10)
+## 최근 완료 (2026-06-10, 2차)
 
-- 큐브 계산기 ml/g 단위 분리, 300ml÷5끼=60ml/끼 재산정
-- 철분 1끼 목표 = 월령별 끼 수 반영
-- 성능: debounce, Chart.js lazy load, DB 캐시
-- UX: 철분 등급, 복사/인쇄, 폼 상태 localStorage
+- fix: 최근 계산 기록 오염(타이핑·페이지 로드마다 저장) → 명시 액션 시에만 저장 + 중복 병합
+- SEO: FAQ 정적 HTML화(+FAQPage JSON-LD를 head로), 가이드 3편 신설, sitemap 6 URL 확장, og-image
+- AdSense 준비: privacy/terms/404/ads.txt, 문의 이메일(hhong0218@gmail.com), 패밀리 푸터(무료 도구 5종 크로스링크)
+- PWA: Service Worker(오프라인 지원, network-first라 배포 후 stale 없음)
+- 배포: GitHub Actions 자동 배포 워크플로 추가
 
 ## 다음 작업 후보
 
-- [ ] Cloudflare ↔ GitHub 자동 배포 연동
-- [ ] AdSense client ID 적용 (승인 후)
-- [ ] Service Worker (오프라인 PWA)
+- [ ] `CLOUDFLARE_API_TOKEN` 레포 시크릿 등록 → Actions 자동 배포 활성화 (ACCOUNT_ID는 등록됨)
+- [ ] 네이버 서치어드바이저·구글 서치콘솔 등록 + sitemap 제출
+- [ ] AdSense 신청(콘텐츠·필수 페이지 충족됨) → 승인 후 ads.txt·index.html 주석의 pub ID 교체
+- [ ] Cloudflare 오타 고아 프로젝트 `agihanki-calculato` 삭제 검토
 
 ## 브랜치
 
