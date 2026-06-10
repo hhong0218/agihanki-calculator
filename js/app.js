@@ -1014,7 +1014,7 @@
       `흡수 추정 철분: ${formatPretty(s.absorbedIron)}mg (${s.absPct}%) · ${s.grade}`,
       '재료:',
       ...s.items.map((it) => `  - ${it.name}: ${formatPretty(it.grams)}g (철 ${formatPretty(it.iron)}mg)`),
-      'https://agihanki-calculato.pages.dev/',
+      'https://agihanki-calculator.pages.dev/',
     ];
     return lines.join('\n');
   }
