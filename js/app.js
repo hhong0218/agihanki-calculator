@@ -5,17 +5,23 @@
 (function () {
   'use strict';
 
+  /**
+   * 월령별 참고치. perMeal/kcalDaily/kcalPerMeal = 이유식(고형식) 몫에 대한
+   * 본 계산기의 자체 정리 참고치 (2025 한국인 영양소 섭취기준의 일일 총
+   * 에너지필요추정량: 0~5개월 500 / 6~11개월 600 / 1~2세 900 kcal).
+   * ironDaily·proteinDaily = 2025 한국인 영양소 섭취기준 권장섭취량(일일 총량).
+   */
   const AGE_GUIDE = [
-    { id: '6m', label: '6개월', months: 6, perMeal: 70, mealsPerDay: 1, kcalDaily: 200, kcalPerMeal: 100, ironDaily: 11, proteinDaily: 11, consistency: '묽은 미음', refWeightKg: 7.3 },
-    { id: '7-8m', label: '7~8개월', months: 7, perMeal: 90, mealsPerDay: 2, kcalDaily: 350, kcalPerMeal: 120, ironDaily: 11, proteinDaily: 13, consistency: '미음~죽', refWeightKg: 8.0 },
-    { id: '9-11m', label: '9~11개월', months: 10, perMeal: 125, mealsPerDay: 2, kcalDaily: 500, kcalPerMeal: 180, ironDaily: 11, proteinDaily: 14, consistency: '죽~진죽', refWeightKg: 8.9 },
-    { id: '12-18m', label: '12~18개월', months: 15, perMeal: 175, mealsPerDay: 3, kcalDaily: 900, kcalPerMeal: 250, ironDaily: 7, proteinDaily: 15, consistency: '진죽~무른밥', refWeightKg: 9.5 },
-    { id: '19-24m', label: '19~24개월', months: 21, perMeal: 225, mealsPerDay: 3, kcalDaily: 1100, kcalPerMeal: 300, ironDaily: 7, proteinDaily: 16, consistency: '무른밥·반찬', refWeightKg: 10.0 },
+    { id: '6m', label: '6개월', months: 6, perMeal: 70, mealsPerDay: 1, kcalDaily: 200, kcalPerMeal: 100, ironDaily: 6, proteinDaily: 15, consistency: '묽은 미음', refWeightKg: 7.3 },
+    { id: '7-8m', label: '7~8개월', months: 7, perMeal: 90, mealsPerDay: 2, kcalDaily: 350, kcalPerMeal: 120, ironDaily: 6, proteinDaily: 15, consistency: '미음~죽', refWeightKg: 8.0 },
+    { id: '9-11m', label: '9~11개월', months: 10, perMeal: 125, mealsPerDay: 2, kcalDaily: 500, kcalPerMeal: 180, ironDaily: 6, proteinDaily: 15, consistency: '죽~진죽', refWeightKg: 8.9 },
+    { id: '12-18m', label: '12~18개월', months: 15, perMeal: 175, mealsPerDay: 3, kcalDaily: 900, kcalPerMeal: 250, ironDaily: 6, proteinDaily: 20, consistency: '진죽~무른밥', refWeightKg: 9.5 },
+    { id: '19-24m', label: '19~24개월', months: 21, perMeal: 225, mealsPerDay: 3, kcalDaily: 900, kcalPerMeal: 300, ironDaily: 6, proteinDaily: 20, consistency: '무른밥·반찬', refWeightKg: 10.0 },
   ];
 
   const UNITS = ['g', 'ml', '개', '작은술', '큰술'];
   const UNIT_TO_G = { g: 1, ml: 1, 개: 50, '작은술': 5, '큰술': 15 };
-  /** 묽은 죽~진죽 평균 밀도 (식약처·이유식 조리 기준 약 1.0~1.05 g/ml) */
+  /** 묽은 죽~진죽의 일반적 추정 밀도 (약 1.0~1.05 g/ml, 자체 적용 대표값) */
   const BABY_FOOD_DENSITY = 1.03;
 
   const PRESETS = [
@@ -212,17 +218,19 @@
   }
 
   /**
-   * 월령·체중 기반 철분 권장량
-   * 기준: 한국영양학회 2020 (0~6M 0.27 / 7~12M 11 / 1~3Y 7 mg)
-   * 체중 보정: max(기본, 체중kg×1.0) · 1끼 = (일일×45%)÷3
+   * 월령 기반 철분 권장량 — 2025 한국인 영양소 섭취기준 (보건복지부·한국영양학회)
+   * 0~5개월 충분섭취량 0.3 / 6~11개월 권장섭취량 6 / 1~2세 권장섭취량 6 mg/일
+   * 1끼 목표 = (일일 권장 × 45%) ÷ 월령별 끼 수 — 45%는 "이유식으로 충당하는
+   * 비율"에 대한 본 계산기의 자체 가정이며 공식 기준이 아님.
+   * (weightKg 인자는 호환을 위해 유지하나 권장량 산정에 사용하지 않음 —
+   *  체중×1.0mg 보정은 공식 기준에 없는 휴리스틱이라 제거됨)
    */
   function calculateIronNeeds(ageMonths, weightKg, mealsPerDay) {
     const ref = typeof IRON_DRI_REFERENCE !== 'undefined' ? IRON_DRI_REFERENCE : null;
-    let dailyIron = ageMonths < 7 ? 0.27 : (ageMonths <= 12 ? 11 : 7);
+    let dailyIron = ageMonths < 6 ? 0.3 : 6;
     if (ref) {
-      dailyIron = ageMonths < 7 ? ref.under7.mg : (ageMonths <= 12 ? ref.infant.mg : ref.toddler.mg);
+      dailyIron = ageMonths < 6 ? ref.under6.mg : (ageMonths <= 11 ? ref.infant.mg : ref.toddler.mg);
     }
-    dailyIron = Math.max(dailyIron, weightKg * 1.0);
     const ratio = ref ? ref.mealRatio : 0.45;
     const meals = Math.max(mealsPerDay || (ref ? ref.mealsPerDay : 3), 1);
     const oneMealIron = (dailyIron * ratio) / meals;
@@ -661,19 +669,18 @@
       const ironNeeds = getIronNeedsForAge(age, weightKg);
       const ironPct = rec.iron > 0 ? Math.round(totals.iron / rec.iron * 100) : 0;
       const absPct = rec.iron > 0 ? Math.round(absorbedIron / rec.iron * 100) : 0;
-      const baseIron = age.months < 7 ? 0.27 : (age.months <= 12 ? 11 : 7);
       els.ironHighlight.innerHTML = `
         <div class="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-5 border-2 border-red-200">
-          <h3 class="font-bold text-red-800 text-lg mb-2">🩸 체중 기반 철분 분석</h3>
+          <h3 class="font-bold text-red-800 text-lg mb-2">🩸 1끼 철분 분석</h3>
           <div class="grid sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p>아기 체중 <strong>${weightKg}kg</strong> · ${age.label} (${age.months}개월)</p>
-              <p class="mt-1">1끼 철분 함량: <strong class="text-red-600 text-lg">${formatPretty(totals.iron)}mg</strong> (권장 대비 ${ironPct}%)</p>
+              <p class="mt-1">1끼 철분 함량: <strong class="text-red-600 text-lg">${formatPretty(totals.iron)}mg</strong> (1끼 목표 대비 ${ironPct}%)</p>
               <p>추정 흡수 철분: <strong>${formatPretty(absorbedIron)}mg</strong> (흡수율 반영 ${absPct}%)</p>
             </div>
             <div>
-              <p class="text-gray-600">기본 일일 권장: ${baseIron}mg → 체중 보정: <strong>${ironNeeds.dailyIron}mg/일</strong></p>
-              <p class="text-gray-600">이유식 1끼 목표: <strong class="text-red-700">${ironNeeds.oneMealIron}mg</strong> <span class="text-xs">(일일 × 45% ÷ ${ironNeeds.mealsPerDay}끼)</span></p>
+              <p class="text-gray-600">일일 권장섭취량: <strong>${ironNeeds.dailyIron}mg/일</strong> <span class="text-xs">(2025 한국인 영양소 섭취기준)</span></p>
+              <p class="text-gray-600">이유식 1끼 목표: <strong class="text-red-700">${ironNeeds.oneMealIron}mg</strong> <span class="text-xs">(일일 × 45% ÷ ${ironNeeds.mealsPerDay}끼 — 자체 산정)</span></p>
               ${hasVitC ? '<p class="mt-2 text-green-700 font-medium">✓ 비타민C 식품 포함 → 비헴철 흡수율 ↑</p>' : ''}
               ${hasInhibitor ? '<p class="mt-1 text-amber-700 font-medium">⚠ 칼슘/우유 성분 포함 → 철 흡수 저해 가능</p>' : ''}
             </div>

@@ -1,9 +1,10 @@
 /**
- * 식품영양성분 DB — 식약처 국가표준식품성분표(제10차, 2023~2024 반영) 기준
- * 100g edible portion | iron 단위: mg
- * @see https://various.foodsafetykorea.go.kr/nutrient/
+ * 식품영양성분 DB — 농촌진흥청 국립농업과학원 국가표준식품성분표(제10개정) 등
+ * 공개 자료 기반 대표치 | 100g edible portion | iron 단위: mg
+ * 동일 식품도 품종·조리법에 따라 값이 달라질 수 있는 추정치임
+ * @see https://koreanfood.rda.go.kr (농식품올바로)
  */
-const NUTRIENT_DB_VERSION = '2024-식약처제10차';
+const NUTRIENT_DB_VERSION = '농촌진흥청 국가표준식품성분표 제10개정 기반 대표치';
 
 const nutrientDB = {
   '소고기_다짐육': {
@@ -129,15 +130,15 @@ const VIT_C_KEYWORDS = ['키위', '딸기', '사과', '오렌지', '브로콜리
 const IRON_INHIBITORS = ['우유', '치즈', '두유', '요거트', '커피', '홍차', '분유'];
 
 const IRON_GUIDE_FOODS = [
-  { name: '소고기 (다짐육)', iron: 2.6, type: '헴철', absorb: '15~35%', tip: '이유식 철분 1순위', source: '식약처' },
-  { name: '달걀 노른자', iron: 4.85, type: '헴철', absorb: '15~35%', tip: '7개월~ 소량, 알레르기 주의', source: '식약처' },
-  { name: '오트밀 (귀리)', iron: 4.25, type: '비헴철', absorb: '3~8%', tip: '비헴철이나 함량 높음', source: '식약처' },
-  { name: '미역 (마른것)', iron: 2.81, type: '비헴철', absorb: '3~8%', tip: '나트륨·요오드 주의', source: '식약처' },
-  { name: '시금치', iron: 2.03, type: '비헴철', absorb: '3~8%', tip: '비타민C·헴철과 함께', source: '식약처' },
-  { name: '콩 (완두)', iron: 2.03, type: '비헴철', absorb: '3~8%', tip: '12개월 이후 권장', source: '식약처' },
-  { name: '두부', iron: 1.41, type: '비헴철', absorb: '3~8%', tip: '칼슘 많아 철 흡수↓', source: '식약처' },
-  { name: '닭가슴살', iron: 0.28, type: '헴철', absorb: '15~35%', tip: '철은 적지만 소화 쉬움', source: '식약처' },
-  { name: '브로콜리', iron: 0.67, type: '비헴철', absorb: '3~8%', tip: '비타민C 동시 함유', source: '식약처' },
+  { name: '소고기 (다짐육)', iron: 2.6, type: '헴철', absorb: '15~35%', tip: '이유식 철분 1순위', source: '농진청' },
+  { name: '달걀 노른자', iron: 4.85, type: '헴철', absorb: '15~35%', tip: '7개월~ 소량, 알레르기 주의', source: '농진청' },
+  { name: '오트밀 (귀리)', iron: 4.25, type: '비헴철', absorb: '3~8%', tip: '비헴철이나 함량 높음', source: '농진청' },
+  { name: '미역 (마른것)', iron: 2.81, type: '비헴철', absorb: '3~8%', tip: '나트륨·요오드 주의', source: '농진청' },
+  { name: '시금치', iron: 2.03, type: '비헴철', absorb: '3~8%', tip: '비타민C·헴철과 함께', source: '농진청' },
+  { name: '콩 (완두)', iron: 2.03, type: '비헴철', absorb: '3~8%', tip: '12개월 이후 권장', source: '농진청' },
+  { name: '두부', iron: 1.41, type: '비헴철', absorb: '3~8%', tip: '칼슘 많아 철 흡수↓', source: '농진청' },
+  { name: '닭가슴살', iron: 0.28, type: '헴철', absorb: '15~35%', tip: '철은 적지만 소화 쉬움', source: '농진청' },
+  { name: '브로콜리', iron: 0.67, type: '비헴철', absorb: '3~8%', tip: '비타민C 동시 함유', source: '농진청' },
 ];
 
 const IRON_COMBOS_GOOD = [
@@ -158,10 +159,10 @@ const IRON_COMBOS_BAD = [
 
 /** 월령별 철분 결핍 위험 & 대응 (교육용) */
 const IRON_AGE_FACTS = [
-  { age: '6개월~', risk: '태아 철 저장 고갈 시기', action: '철강화 미음·소고기 Early 도입 검토' },
-  { age: '7~12개월', risk: '일일 11mg 필요 — 가장 높은 시기', action: '주 3~4회 헴철, VC 과일 동반' },
-  { age: '12~24개월', risk: '우유 의존 시 철 결핍 흔함', action: '우유 500ml 이하, 고기·콩 유지' },
-  { age: '24개월+', risk: '일일 7mg, 편식 시작', action: '오트밀·달걀·적색육 골고루' },
+  { age: '6개월~', risk: '태아기 철 저장 고갈 시기', action: '철분 함유 식품(소고기 등) 도입 검토' },
+  { age: '6~11개월', risk: '권장섭취량 6mg/일(2025 한국 기준) — 식이로 채워야 하는 시기', action: '주 3~4회 헴철, 비타민C 과일 동반' },
+  { age: '12~24개월', risk: '우유 의존 시 철 결핍 흔함', action: '우유 과다 섭취 주의, 고기·콩 유지' },
+  { age: '24개월+', risk: '편식 시작으로 섭취 편중 위험', action: '오트밀·달걀·적색육 골고루' },
 ];
 
 /** 철 결핍 의심 신호 (참고용, YMYL) */
@@ -334,11 +335,15 @@ const IRON_MEAL_PLANS_7DAY = [
   },
 ];
 
-/** 철분 권장 기준 출처 (한국영양학회 2020) */
+/**
+ * 철분 권장 기준 — 2025 한국인 영양소 섭취기준 (보건복지부·한국영양학회)
+ * 0~5개월 충분섭취량 0.3 / 6~11개월 권장섭취량 6 / 1~2세 권장섭취량 6 mg/일
+ * mealRatio 0.45 = "이유식으로 일일 권장의 약 45%를 충당" — 본 계산기의 자체 가정
+ */
 const IRON_DRI_REFERENCE = {
-  under7: { mg: 0.27, note: '0~6개월 AI (모유)' },
-  infant: { mg: 11, note: '7~12개월 RDA' },
-  toddler: { mg: 7, note: '1~3세 RDA' },
+  under6: { mg: 0.3, note: '0~5개월 충분섭취량 (모유 기준)' },
+  infant: { mg: 6, note: '6~11개월 권장섭취량' },
+  toddler: { mg: 6, note: '1~2세 권장섭취량' },
   mealRatio: 0.45,
   mealsPerDay: 3,
 };

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>아기한끼 계산기 | 유아식 1끼 분량·철분·영양 계산 | BabyMeal</title>
-  <meta name="description" content="3인분 이유식을 1끼로 정확히 계산하고 철분·열량·단백질을 자동 분석하세요. 월령별 권장량, 성장곡선, 큐브 소분, 철분 흡수 가이드. 한국 부모를 위한 무료 YMYL 건강 도구.">
+  <meta name="description" content="3인분 이유식을 1끼로 간편하게 변환하고 철분·열량·단백질을 자동 분석하세요. 월령별 권장량, 성장곡선, 큐브 소분, 철분 흡수 가이드. 한국 부모를 위한 무료 육아 참고 도구.">
   <meta name="keywords" content="유아식 분량 계산기, 이유식 1끼, 이유식 철분, 아기 철분, 이유식 영양, 월령별 이유식, 이유식 소분, 아기한끼, BabyMeal">
   <meta name="author" content="아기한끼 계산기">
   <meta name="robots" content="index, follow">
@@ -56,12 +56,12 @@
   </script>
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-    {"@type":"Question","name":"이유식 1끼에 철분은 얼마나 필요한가요?","acceptedAnswer":{"@type":"Answer","text":"7개월 미만 0.27mg, 7~12개월 11mg, 13개월 이상 7mg을 기본으로 하고, 체중(kg)×1.0과 비교해 더 큰 값을 일일 권장으로 씁니다. 이유식 1끼 목표는 (일일권장 × 45%) ÷ 월령별 끼 수(6M 1끼·7~11M 2끼·12M+ 3끼)입니다. 흡수율을 고려해 헴철·비타민C 식품을 포함하세요."}},
+    {"@type":"Question","name":"이유식 1끼에 철분은 얼마나 필요한가요?","acceptedAnswer":{"@type":"Answer","text":"2025 한국인 영양소 섭취기준(보건복지부·한국영양학회)의 일일 권장섭취량은 6~11개월 6mg, 1~2세 6mg입니다(0~5개월은 충분섭취량 0.3mg). 본 계산기의 이유식 1끼 목표는 (일일 권장 × 45%) ÷ 월령별 끼 수(6개월 1끼·7~11개월 2끼·12개월+ 3끼)로 계산하며, 45%는 이유식으로 충당한다고 보는 자체 가정입니다. 흡수율을 고려해 헴철·비타민C 식품을 함께 구성하세요."}},
     {"@type":"Question","name":"3인분 레시피를 1끼로 줄이려면?","acceptedAnswer":{"@type":"Answer","text":"원래 인분 3, 목표 인분 1로 설정하면 재료·영양소가 자동으로 1/3 계산됩니다."}},
     {"@type":"Question","name":"시금치만으로 철분이 충분한가요?","acceptedAnswer":{"@type":"Answer","text":"시금치는 비헴철이라 흡수율이 3~8%에 불과합니다. 소고기·달걀노른자 등 헴철과 비타민C 과일을 함께 제공하세요."}},
     {"@type":"Question","name":"우유와 이유식을 같이 먹여도 되나요?","acceptedAnswer":{"@type":"Answer","text":"칼슘·우유 단백이 철분 흡수를 저해합니다. 철분 식품 섭취 후 1~2시간 간격을 두는 것이 좋습니다."}},
     {"@type":"Question","name":"성장 백분위수는 어떻게 해석하나요?","acceptedAnswer":{"@type":"Answer","text":"P50은 같은 월령 평균, P3~P15는 저체중, P85~P97은 과체중 범위로 참고합니다. 정확한 판정은 소아과 성장검진이 필요합니다."}},
-    {"@type":"Question","name":"DB에 없는 재료는 어떻게 하나요?","acceptedAnswer":{"@type":"Answer","text":"재료 행의 \"직접입력\" 버튼으로 영양값을 수동 입력할 수 있습니다. 식약처 식품영양성분표를 참고하세요."}},
+    {"@type":"Question","name":"DB에 없는 재료는 어떻게 하나요?","acceptedAnswer":{"@type":"Answer","text":"재료 행의 \"직접입력\" 버튼으로 영양값을 수동 입력할 수 있습니다. 농촌진흥청 농식품올바로(국가표준식품성분표)를 참고하세요."}},
     {"@type":"Question","name":"소분 계산기에서 300ml와 300g/끼는 같은가요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 총량 300ml를 5끼로 나누면 1끼 약 60ml(≈62g)입니다. 300g/끼는 나눌 끼 수가 1일 때만 나오며, 전량을 한 끼로 먹는 경우입니다. 큐브는 ml 기준, 영양 계산은 g 기준으로 각각 표시합니다."}}
   ]}
   </script>
@@ -78,7 +78,7 @@
           <div>
             <p class="text-xs text-orange-500 font-semibold">BabyMeal Calculator</p>
             <h1 class="text-lg sm:text-xl font-bold">아기한끼 계산기</h1>
-            <p class="text-xs text-gray-500 hidden sm:block">이유식 1끼 정확 계산 · 영양 · 철분 관리</p>
+            <p class="text-xs text-gray-500 hidden sm:block">이유식 1끼 분량 계산 · 영양 · 철분 관리</p>
           </div>
         </a>
         <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-orange-50" aria-label="메뉴">☰</button>
@@ -107,10 +107,10 @@
     <!-- ══ 계산기 ══ -->
     <section id="panel-calculator" class="tab-panel active" role="tabpanel">
       <article class="mb-6 bg-gradient-to-r from-orange-50 to-cream rounded-2xl p-6 border border-orange-100">
-        <h2 class="text-2xl font-bold mb-2">이유식 3인분 → 1끼 정확 계산 + 철분·영양 분석</h2>
+        <h2 class="text-2xl font-bold mb-2">이유식 3인분 → 1끼 변환 계산 + 철분·영양 분석</h2>
         <p class="text-gray-600 leading-relaxed">
           레시피 분량을 줄이는 것만큼 중요한 것이 <strong>철분·열량 균형</strong>입니다.
-          식약처 기반 영양 DB로 1끼 열량·단백질·<strong class="text-red-600">철분</strong>을 자동 계산하고,
+          공공 영양 DB(농촌진흥청 국가표준식품성분표 기반)로 1끼 열량·단백질·<strong class="text-red-600">철분</strong>을 자동 계산하고,
           아기 <strong>체중(kg)</strong>에 맞춘 권장량과 비교하세요.
           <a href="#iron" class="text-red-600 underline" data-tab="iron">철분 가이드</a> ·
           <a href="#growth" class="text-sage underline" data-tab="growth">성장곡선</a>
@@ -321,6 +321,7 @@
       <article class="mb-6">
         <h2 class="text-2xl font-bold mb-2">프리셋 레시피 (철분 강조)</h2>
         <p class="text-gray-600">클릭하면 <a href="#calculator" class="text-orange-600 underline" data-tab="calculator">메인 계산기</a>에 로드됩니다.</p>
+        <p class="text-xs text-amber-700 mt-2 bg-amber-50 border border-amber-200 rounded-xl p-3">⚠ 달걀·생선(연어)·키위 등 알레르기 유발 가능 재료가 포함될 수 있습니다. 새로운 재료는 한 번에 한 가지씩 소량으로 시작하고, 발진·구토·설사 등 이상 반응이 있으면 중단 후 소아과와 상담하세요.</p>
       </article>
       <div id="preset-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
@@ -374,19 +375,19 @@
       </div>
 
       <div class="bg-white rounded-2xl p-6 border border-red-100">
-        <h3 class="font-bold text-lg mb-3">체중 기반 철분 계산 로직</h3>
-        <pre class="text-xs bg-gray-50 rounded-xl p-4 mb-4 overflow-x-auto border border-gray-200"><code>function calculateIronNeeds(ageMonths, weightKg, mealsPerDay) {
-  let dailyIron = (ageMonths &lt; 7) ? 0.27 : (ageMonths &lt;= 12) ? 11 : 7;
-  dailyIron = Math.max(dailyIron, weightKg * 1.0);  // 체중 보정
+        <h3 class="font-bold text-lg mb-3">철분 1끼 목표 계산 방식 (투명 공개)</h3>
+        <pre class="text-xs bg-gray-50 rounded-xl p-4 mb-4 overflow-x-auto border border-gray-200"><code>function calculateIronNeeds(ageMonths, mealsPerDay) {
+  // 2025 한국인 영양소 섭취기준: 0~5개월 0.3(충분) / 6~11개월 6(권장) / 1~2세 6(권장) mg
+  const dailyIron = (ageMonths &lt; 6) ? 0.3 : 6;
+  // 45% = 이유식으로 충당한다고 보는 본 계산기의 자체 가정 (공식 기준 아님)
   const oneMealIron = (dailyIron * 0.45) / mealsPerDay;  // 6M·1끼 / 7~11M·2끼 / 12M+·3끼
   return { dailyIron, oneMealIron };
 }</code></pre>
         <ol class="text-sm text-gray-700 space-y-2 list-decimal list-inside">
-          <li><strong>기본 권장 (한국영양학회 2020):</strong> 0~6M 0.27mg · 7~12M 11mg · 1~3세 7mg/일</li>
-          <li><strong>체중 보정:</strong> <code>max(기본권장, 체중kg × 1.0)</code></li>
-          <li><strong>1끼 목표:</strong> <code>(일일권장 × 45%) ÷ 월령별 끼 수</code> — 6M 1끼 · 7~11M 2끼 · 12M+ 3끼</li>
-          <li><strong>흡수 추정:</strong> 헴철 25%, 비헴철 5%, 비타민C 동반 시 15%, 우유/칼슘 동반 시 50% 감소</li>
-          <li><strong>영양 DB:</strong> 식약처 국가표준식품성분표 제10차 (100g 기준, 25종)</li>
+          <li><strong>일일 권장 (2025 한국인 영양소 섭취기준, 보건복지부·한국영양학회):</strong> 0~5개월 0.3mg(충분섭취량) · 6~11개월 6mg · 1~2세 6mg(권장섭취량). 참고: 미국 NIH 기준(7~12개월 11mg)은 흡수율 가정이 달라 수치가 다릅니다.</li>
+          <li><strong>1끼 목표:</strong> <code>(일일 권장 × 45%) ÷ 월령별 끼 수</code> — 6M 1끼 · 7~11M 2끼 · 12M+ 3끼. 45%는 자체 가정값</li>
+          <li><strong>흡수 추정:</strong> 헴철 약 25%, 비헴철 약 5%, 비타민C 동반 시 약 15%, 우유/칼슘 동반 시 50% 감소 — 일반 영양학 문헌의 통용 추정치</li>
+          <li><strong>영양 DB:</strong> 농촌진흥청 국립농업과학원 국가표준식품성분표(제10개정) 기반 대표치 (100g 기준, 25종)</li>
           <li><strong>성장 백분위:</strong> P15 미만 시 영양사·소아과 상담 권장 (<a href="#growth" class="text-orange-600 underline" data-tab="growth">성장 탭</a>)</li>
         </ol>
       </div>
@@ -401,7 +402,7 @@
       <div id="faq-list">
         <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
           <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">이유식 1끼에 철분은 얼마나 필요한가요?<span class="text-orange-400">+</span></summary>
-          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">7개월 미만 0.27mg, 7~12개월 11mg, 13개월 이상 7mg을 기본으로 하고, 체중(kg)×1.0과 비교해 더 큰 값을 일일 권장으로 씁니다. 이유식 1끼 목표는 (일일권장 × 45%) ÷ 월령별 끼 수(6M 1끼·7~11M 2끼·12M+ 3끼)입니다. 흡수율을 고려해 헴철·비타민C 식품을 포함하세요.</div>
+          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">2025 한국인 영양소 섭취기준(보건복지부·한국영양학회)의 일일 권장섭취량은 6~11개월 6mg, 1~2세 6mg입니다(0~5개월은 충분섭취량 0.3mg). 본 계산기의 이유식 1끼 목표는 (일일 권장 × 45%) ÷ 월령별 끼 수(6개월 1끼·7~11개월 2끼·12개월+ 3끼)로 계산하며, 45%는 이유식으로 충당한다고 보는 자체 가정입니다. 흡수율을 고려해 헴철·비타민C 식품을 함께 구성하세요.</div>
         </details>
         <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
           <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">3인분 레시피를 1끼로 줄이려면?<span class="text-orange-400">+</span></summary>
@@ -421,7 +422,7 @@
         </details>
         <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
           <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">DB에 없는 재료는 어떻게 하나요?<span class="text-orange-400">+</span></summary>
-          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">재료 행의 "직접입력" 버튼으로 영양값을 수동 입력할 수 있습니다. 식약처 식품영양성분표를 참고하세요.</div>
+          <div class="px-5 pb-4 text-sm text-gray-600 border-t border-orange-50 pt-3">재료 행의 "직접입력" 버튼으로 영양값을 수동 입력할 수 있습니다. 농촌진흥청 농식품올바로(국가표준식품성분표)를 참고하세요.</div>
         </details>
         <details class="faq-item bg-white rounded-xl border border-orange-100 mb-3">
           <summary class="px-5 py-4 font-medium cursor-pointer flex justify-between">소분 계산기에서 300ml와 300g/끼는 같은가요?<span class="text-orange-400">+</span></summary>
@@ -457,7 +458,7 @@
   <div id="nutrient-modal" class="hidden fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" role="dialog" aria-labelledby="modal-title">
       <h3 id="modal-title" class="text-lg font-bold mb-4">영양값 직접 입력 (100g 기준)</h3>
-      <p class="text-xs text-gray-500 mb-4">식약처 식품영양성분표를 참고하세요. DB에 없는 재료용.</p>
+      <p class="text-xs text-gray-500 mb-4">농촌진흥청 농식품올바로(국가표준식품성분표)를 참고하세요. DB에 없는 재료용.</p>
       <label class="block mb-3"><span class="text-sm">재료명</span>
         <input type="text" id="modal-food-name" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
       <div class="grid grid-cols-2 gap-3 mb-4">
@@ -490,9 +491,9 @@
         <div>
           <h3 class="font-bold mb-2">출처</h3>
           <ul class="space-y-1 text-xs sm:text-sm">
-            <li>· 식품의약품안전처 국가표준식품성분표</li>
+            <li>· 농촌진흥청 국립농업과학원 국가표준식품성분표(제10개정)</li>
             <li>· 질병관리청 이유식·성장도표 (2017)</li>
-            <li>· 한국영양학회 한국인 영양소 섭취기준 (2020)</li>
+            <li>· 보건복지부·한국영양학회 한국인 영양소 섭취기준 (2025)</li>
           </ul>
         </div>
         <div>
