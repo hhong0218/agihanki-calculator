@@ -64,6 +64,19 @@ input[type="range"] { accent-color: #ff6b6b; }
 
 @media (max-width: 640px) {
   .ingredient-table-wrap { -webkit-overflow-scrolling: touch; }
+  /* iOS가 16px 미만 입력 포커스 시 화면을 자동 확대하는 것 방지 */
+  input, select, textarea { font-size: 16px !important; }
+}
+
+/* 모바일: 가로 스크롤 표 힌트 (sm 이상에서 숨김) */
+.scroll-hint { display: none; }
+@media (max-width: 640px) {
+  .scroll-hint {
+    display: block;
+    font-size: 11px;
+    color: #9ca3af;
+    padding: 6px 12px 8px;
+  }
 }
 
 @media print {

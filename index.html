@@ -132,7 +132,7 @@
                 </select>
               </label>
               <label><span class="text-sm text-gray-600">현재 체중 (kg)</span>
-                <input type="number" id="baby-weight" class="mt-1 w-full px-4 py-3 rounded-xl border border-orange-200" placeholder="예: 9.2" min="4" max="20" step="0.1" value="9.2">
+                <input type="number" id="baby-weight" inputmode="decimal" class="mt-1 w-full px-4 py-3 rounded-xl border border-orange-200" placeholder="예: 9.2" min="4" max="20" step="0.1" value="9.2">
               </label>
             </div>
             <label class="block mb-4"><span class="text-sm text-gray-600">레시피 이름</span>
@@ -140,20 +140,20 @@
             </label>
             <div class="grid sm:grid-cols-2 gap-4 mb-5">
               <div><span class="text-sm text-gray-600">원래 인분</span>
-                <div class="flex gap-2 mt-1"><input type="number" id="original-servings" class="w-20 px-3 py-2 rounded-lg border text-center font-bold" value="3" min="0.5" step="0.5">
+                <div class="flex gap-2 mt-1"><input type="number" id="original-servings" inputmode="decimal" class="w-20 px-3 py-2 rounded-lg border text-center font-bold" value="3" min="0.5" step="0.5">
                 <input type="range" id="original-slider" class="flex-1" min="1" max="10" step="0.5" value="3"></div>
               </div>
               <div><span class="text-sm text-gray-600">목표 끼 수</span>
-                <div class="flex gap-2 mt-1"><input type="number" id="target-servings" class="w-20 px-3 py-2 rounded-lg border text-center font-bold text-orange-600" value="1" min="0.5" step="0.5">
+                <div class="flex gap-2 mt-1"><input type="number" id="target-servings" inputmode="decimal" class="w-20 px-3 py-2 rounded-lg border text-center font-bold text-orange-600" value="1" min="0.5" step="0.5">
                 <input type="range" id="target-slider" class="flex-1" min="0.5" max="10" step="0.5" value="1"></div>
               </div>
             </div>
 
             <h3 class="font-semibold mb-2">재료 (자동완성 · 영양 DB 연동)</h3>
             <div class="ingredient-table-wrap overflow-x-auto">
-              <table class="w-full text-sm min-w-[420px]">
+              <table class="w-full text-sm min-w-[320px]">
                 <thead><tr class="text-gray-500 border-b border-orange-100">
-                  <th class="pb-2 text-left">재료명</th><th class="pb-2 w-20">양</th><th class="pb-2 w-20">단위</th><th class="pb-2 w-24"></th>
+                  <th class="pb-2 text-left">재료명</th><th class="pb-2 w-16 sm:w-20">양</th><th class="pb-2 w-20">단위</th><th class="pb-2 w-14 sm:w-24"></th>
                 </tr></thead>
                 <tbody id="ingredient-body"></tbody>
               </table>
@@ -229,6 +229,7 @@
         <p class="text-gray-600">질병관리청·한국영양학회 기준 참고량. 2017 KDCA 성장도표로 체중 백분위를 추정합니다.</p>
       </article>
       <div class="bg-white rounded-2xl border border-orange-100 overflow-x-auto mb-6">
+        <p class="scroll-hint">← 표를 옆으로 밀면 전체가 보여요</p>
         <table class="w-full text-sm min-w-[600px]">
           <thead class="bg-orange-50"><tr class="text-left text-gray-600">
             <th class="py-3 px-3">단계</th><th class="py-3 px-3">1끼(g)</th><th class="py-3 px-3">1끼(kcal)</th>
@@ -240,6 +241,7 @@
 
       <div class="bg-white rounded-2xl border border-orange-100 overflow-x-auto mb-6">
         <h3 class="font-bold text-lg p-4 pb-2">성장도표 상세 — 체중·신장 P50 (남·여, 6~24개월)</h3>
+        <p class="scroll-hint">← 표를 옆으로 밀면 전체가 보여요</p>
         <table class="w-full text-sm min-w-[720px]">
           <thead class="bg-orange-50"><tr class="text-left text-gray-600">
             <th class="py-2 px-2">월령</th>
@@ -271,10 +273,10 @@
             </select>
           </label>
           <label><span class="text-sm text-gray-600">체중 (kg)</span>
-            <input type="number" id="growth-weight" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="9.2" step="0.1">
+            <input type="number" id="growth-weight" inputmode="decimal" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="9.2" step="0.1">
           </label>
           <label><span class="text-sm text-gray-600">신장 (cm)</span>
-            <input type="number" id="growth-height" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="74.0" step="0.1" min="50" max="110">
+            <input type="number" id="growth-height" inputmode="decimal" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="74.0" step="0.1" min="50" max="110">
           </label>
           <label><span class="text-sm text-gray-600">성별</span>
             <select id="growth-gender" class="mt-1 w-full px-4 py-3 rounded-xl border">
@@ -296,7 +298,7 @@
       <div class="bg-white rounded-2xl p-6 border border-mint/50 mb-6">
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <label><span class="text-sm text-gray-600">총량</span>
-            <input type="number" id="cube-total" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="300" min="1" step="any"></label>
+            <input type="number" id="cube-total" inputmode="decimal" class="mt-1 w-full px-4 py-3 rounded-xl border" placeholder="300" min="1" step="any"></label>
           <label><span class="text-sm text-gray-600">단위</span>
             <select id="cube-unit" class="mt-1 w-full px-4 py-3 rounded-xl border">
               <option value="ml" selected>ml (부피·큐브 기준)</option>
@@ -308,7 +310,7 @@
               <option value="30" selected>30ml (중·후기이유식)</option>
             </select></label>
           <label><span class="text-sm text-gray-600">나눌 끼 수</span>
-            <input type="number" id="cube-meals" class="mt-1 w-full px-4 py-3 rounded-xl border" value="5" min="1" max="20" step="1">
+            <input type="number" id="cube-meals" inputmode="numeric" class="mt-1 w-full px-4 py-3 rounded-xl border" value="5" min="1" max="20" step="1">
             <span class="text-xs text-gray-400">보관 소분은 보통 5끼 권장</span></label>
         </div>
         <div id="cube-result"></div>
@@ -343,6 +345,7 @@
       </div>
 
       <div class="bg-white rounded-2xl border border-orange-100 overflow-x-auto mb-6">
+        <p class="scroll-hint">← 표를 옆으로 밀면 전체가 보여요</p>
         <table class="w-full text-sm min-w-[500px]">
           <thead class="bg-red-50"><tr class="text-left">
             <th class="py-3 px-3">식품</th><th class="py-3 px-3">철분/100g</th><th class="py-3 px-3">유형</th>
@@ -358,6 +361,7 @@
         <div id="iron-meal-plan-tabs" class="flex flex-wrap gap-2 mb-4"></div>
         <div id="iron-meal-plan-meta" class="mb-3"></div>
         <div class="bg-white rounded-xl border border-orange-100 overflow-x-auto">
+          <p class="scroll-hint">← 표를 옆으로 밀면 전체가 보여요</p>
           <table class="w-full text-sm min-w-[560px]">
             <thead class="bg-orange-50"><tr class="text-left text-gray-600">
               <th class="py-2 px-3">요일</th><th class="py-2 px-3">메뉴 (1끼)</th>
@@ -462,12 +466,12 @@
       <label class="block mb-3"><span class="text-sm">재료명</span>
         <input type="text" id="modal-food-name" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
       <div class="grid grid-cols-2 gap-3 mb-4">
-        <label class="text-sm">열량(kcal)<input type="number" id="modal-kcal" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0"></label>
-        <label class="text-sm">단백질(g)<input type="number" id="modal-protein" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
-        <label class="text-sm">탄수화물(g)<input type="number" id="modal-carbs" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
-        <label class="text-sm">지방(g)<input type="number" id="modal-fat" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
-        <label class="text-sm">식이섬유(g)<input type="number" id="modal-fiber" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
-        <label class="text-sm text-red-600 font-medium">철분(mg)<input type="number" id="modal-iron" class="mt-1 w-full px-3 py-2 border border-red-200 rounded-lg" min="0" step="0.1"></label>
+        <label class="text-sm">열량(kcal)<input type="number" id="modal-kcal" inputmode="decimal" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0"></label>
+        <label class="text-sm">단백질(g)<input type="number" id="modal-protein" inputmode="decimal" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
+        <label class="text-sm">탄수화물(g)<input type="number" id="modal-carbs" inputmode="decimal" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
+        <label class="text-sm">지방(g)<input type="number" id="modal-fat" inputmode="decimal" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
+        <label class="text-sm">식이섬유(g)<input type="number" id="modal-fiber" inputmode="decimal" class="mt-1 w-full px-3 py-2 border rounded-lg" min="0" step="0.1"></label>
+        <label class="text-sm text-red-600 font-medium">철분(mg)<input type="number" id="modal-iron" inputmode="decimal" class="mt-1 w-full px-3 py-2 border border-red-200 rounded-lg" min="0" step="0.1"></label>
       </div>
       <div class="flex gap-3">
         <button type="button" id="modal-save" class="flex-1 py-2.5 bg-orange-500 text-white font-bold rounded-xl">저장</button>

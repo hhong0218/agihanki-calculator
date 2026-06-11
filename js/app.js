@@ -394,11 +394,11 @@
         <input type="text" class="ing-name w-full px-3 py-2 rounded-lg border border-orange-200 text-sm" placeholder="재료명" value="${escapeAttr(data.name || (data.db ? data.db.replace(/_/g,' ') : ''))}" autocomplete="off">
         <div class="autocomplete-list hidden absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-orange-200 rounded-lg shadow-lg max-h-40 overflow-y-auto"></div>
       </td>
-      <td class="py-2 pr-1"><input type="number" class="ing-amount w-full px-2 py-2 rounded-lg border border-orange-200 text-sm" min="0" step="any" value="${data.amount !== '' ? data.amount : ''}"></td>
+      <td class="py-2 pr-1"><input type="number" inputmode="decimal" class="ing-amount w-full px-2 py-2 rounded-lg border border-orange-200 text-sm" min="0" step="any" value="${data.amount !== '' ? data.amount : ''}"></td>
       <td class="py-2 pr-1"><select class="ing-unit w-full px-2 py-2 rounded-lg border border-orange-200 text-sm">${unitOptions(data.unit || 'g')}</select></td>
       <td class="py-2 text-center whitespace-nowrap">
-        <button type="button" class="custom-nutrient-btn text-xs text-teal-600 hover:underline px-1" title="영양값 직접입력">직접입력</button>
-        <button type="button" class="remove-row text-red-400 hover:text-red-600 p-1" aria-label="삭제">✕</button>
+        <button type="button" class="custom-nutrient-btn text-xs text-teal-600 hover:underline px-1 py-2" title="영양값 직접입력" aria-label="영양값 직접입력"><span class="hidden sm:inline">직접입력</span><span class="sm:hidden">✎</span></button>
+        <button type="button" class="remove-row text-red-400 hover:text-red-600 p-2" aria-label="삭제">✕</button>
       </td>`;
 
     const nameInput = $('.ing-name', tr);
