@@ -2,7 +2,7 @@
  * 아기한끼 계산기 Service Worker
  * 전략: same-origin GET = network-first + 캐시 폴백 (배포 후 stale 위험 없음, 오프라인 지원)
  */
-const CACHE = 'agihanki-v1';
+const CACHE = 'agihanki-v2';
 const CORE = [
   '/',
   '/index.html',

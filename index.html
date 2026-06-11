@@ -169,9 +169,10 @@
             <div class="bg-white rounded-2xl p-5 sm:p-6 border border-orange-100 shadow-sm print-result-card">
               <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <h2 class="text-xl font-bold">📊 1끼 변환 결과</h2>
-                <div class="flex gap-2 no-print">
+                <div class="flex flex-wrap gap-2 no-print">
                   <button type="button" id="copy-result-btn" class="px-3 py-1.5 text-sm rounded-lg border border-orange-200 text-orange-700 hover:bg-orange-50">📋 복사</button>
                   <button type="button" id="print-result-btn" class="px-3 py-1.5 text-sm rounded-lg border border-orange-200 text-orange-700 hover:bg-orange-50">🖨 인쇄</button>
+                  <button type="button" id="share-image-btn" class="px-3 py-1.5 text-sm rounded-lg bg-gradient-to-r from-orange-400 to-coral text-white font-semibold shadow-sm hover:opacity-90">📤 이미지 공유</button>
                 </div>
               </div>
               <div id="iron-grade-badge" class="mb-3"></div>
@@ -436,7 +437,7 @@
 
       <div class="mt-8">
         <h3 class="font-bold text-lg mb-3">📚 더 자세한 가이드</h3>
-        <div class="grid sm:grid-cols-3 gap-4">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <a href="guide/iron.html" class="block bg-white rounded-2xl p-5 border border-red-100 hover:border-red-300 transition shadow-sm">
             <span class="text-2xl">🩸</span>
             <p class="font-bold mt-2">아기 철분 가이드</p>
@@ -451,6 +452,11 @@
             <span class="text-2xl">🍚</span>
             <p class="font-bold mt-2">월령별 분량 가이드</p>
             <p class="text-sm text-gray-500 mt-1">6~24개월 1끼 분량·농도</p>
+          </a>
+          <a href="guide/feeding-schedule.html" class="block bg-white rounded-2xl p-5 border border-lavender hover:border-purple-300 transition shadow-sm">
+            <span class="text-2xl">⏰</span>
+            <p class="font-bold mt-2">이유식 시간표 짜기</p>
+            <p class="text-sm text-gray-500 mt-1">하루 일과 속 이유식·수유 배치</p>
           </a>
         </div>
       </div>
@@ -506,11 +512,13 @@
             <li>· <a href="guide/iron.html" class="text-orange-600 hover:underline">아기 철분 가이드</a></li>
             <li>· <a href="guide/cube.html" class="text-orange-600 hover:underline">큐브 소분·냉동 보관</a></li>
             <li>· <a href="guide/portion.html" class="text-orange-600 hover:underline">월령별 이유식 분량</a></li>
+            <li>· <a href="guide/feeding-schedule.html" class="text-orange-600 hover:underline">이유식 시간표 짜기</a></li>
           </ul>
         </div>
         <div>
           <h3 class="font-bold mb-2">정보</h3>
           <ul class="space-y-1 text-xs sm:text-sm">
+            <li>· <a href="about.html" class="text-orange-600 hover:underline">사이트 소개</a></li>
             <li>· <a href="privacy.html" class="text-orange-600 hover:underline">개인정보처리방침</a></li>
             <li>· <a href="terms.html" class="text-orange-600 hover:underline">이용약관</a></li>
             <li>· 문의: <a href="mailto:hhong0218@gmail.com" class="text-orange-600 hover:underline">hhong0218@gmail.com</a></li>

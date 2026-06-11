@@ -710,7 +710,7 @@
       name: $('#recipe-name')?.value || '레시피',
       age: age.label,
       weight: getBabyWeightKg(age),
-      orig, target, totals, rec, absorbedIron, ironPct, absPct, grade: grade.label,
+      orig, target, totals, rec, absorbedIron, ironPct, absPct, grade: grade.label, gradeLetter: grade.grade,
       totalGrams, totalMl,
       items: nutItems.map((it) => ({ name: it.name, grams: it.grams, iron: it.iron })),
     };
@@ -1101,6 +1101,202 @@
 
   function printResult() { window.print(); }
 
+  // ─── 결과 공유 카드 (Canvas) ──────────────────────────────
+  // 이미 계산된 lastCalcSnapshot 값을 그대로 그리기만 한다 (재계산 없음).
+
+  const SHARE_CARD_FONT = "'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif";
+  const GRADE_CARD_COLORS = {
+    A: { bg: '#dcfce7', fg: '#166534' },
+    B: { bg: '#dbeafe', fg: '#1e40af' },
+    C: { bg: '#fef3c7', fg: '#92400e' },
+    D: { bg: '#fee2e2', fg: '#991b1b' },
+  };
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    if (typeof ctx.roundRect === 'function') { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); return; }
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  /** maxWidth에 맞게 폰트 크기를 줄이고, 그래도 넘치면 말줄임 처리한 텍스트를 돌려준다. */
+  function fitCardText(ctx, text, weight, baseSize, minSize, maxWidth) {
+    let size = baseSize;
+    ctx.font = `${weight} ${size}px ${SHARE_CARD_FONT}`;
+    while (size > minSize && ctx.measureText(text).width > maxWidth) {
+      size -= 4;
+      ctx.font = `${weight} ${size}px ${SHARE_CARD_FONT}`;
+    }
+    let t = String(text);
+    if (ctx.measureText(t).width > maxWidth) {
+      while (t.length > 1 && ctx.measureText(t + '…').width > maxWidth) t = t.slice(0, -1);
+      t += '…';
+    }
+    return t;
+  }
+
+  function buildShareCardCanvas(s) {
+    const W = 1080, H = 1080;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // 배경: 크림 → 피치 그라데이션
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#fff7ed');
+    bg.addColorStop(1, '#ffedd5');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // 상단 포인트 바 (주황 #f97316 계열)
+    const accent = ctx.createLinearGradient(0, 0, W, 0);
+    accent.addColorStop(0, '#fb923c');
+    accent.addColorStop(1, '#f97316');
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, 0, W, 16);
+
+    ctx.textBaseline = 'middle';
+
+    // 브랜드 + 날짜
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ea580c';
+    ctx.font = `bold 54px ${SHARE_CARD_FONT}`;
+    ctx.fillText('🍼 아기한끼', 72, 108);
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = `32px ${SHARE_CARD_FONT}`;
+    ctx.fillText(dateStr, W - 72, 110);
+
+    // 중앙 흰색 카드
+    roundRectPath(ctx, 72, 176, W - 144, 716, 48);
+    ctx.save();
+    ctx.shadowColor = 'rgba(249, 115, 22, 0.18)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 12;
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.restore();
+    roundRectPath(ctx, 72, 176, W - 144, 716, 48);
+    ctx.strokeStyle = '#fed7aa';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    const cx = W / 2;
+
+    // 메뉴명 (사용자 입력)
+    ctx.fillStyle = '#1f2937';
+    const menuText = fitCardText(ctx, s.name || '이유식', 'bold', 72, 40, 800);
+    ctx.fillText(menuText, cx, 288);
+
+    // 메타 (월령 · 인분 변환)
+    ctx.fillStyle = '#6b7280';
+    ctx.font = `34px ${SHARE_CARD_FONT}`;
+    ctx.fillText(`${s.age} · ${s.orig}인분 → ${s.target}끼`, cx, 360);
+
+    // 1끼 분량 (계산된 값 그대로)
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = `34px ${SHARE_CARD_FONT}`;
+    ctx.fillText('1끼 분량 (추정)', cx, 446);
+    ctx.fillStyle = '#f97316';
+    ctx.font = `bold 136px ${SHARE_CARD_FONT}`;
+    ctx.fillText(`${formatPretty(s.totalGrams)}g`, cx, 552);
+
+    // 구분선
+    ctx.strokeStyle = '#fed7aa';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(192, 642);
+    ctx.lineTo(W - 192, 642);
+    ctx.stroke();
+
+    // 철분 등급 배지 (기존 등급 로직 결과값 그대로)
+    const letter = s.gradeLetter || '';
+    const gc = GRADE_CARD_COLORS[letter] || { bg: '#f3f4f6', fg: '#374151' };
+    const pillText = letter ? `${letter} · ${s.grade}` : s.grade || '';
+    ctx.font = `bold 44px ${SHARE_CARD_FONT}`;
+    const pillW = ctx.measureText(pillText).width + 120;
+    const pillH = 88;
+    roundRectPath(ctx, cx - pillW / 2, 716 - pillH / 2, pillW, pillH, pillH / 2);
+    ctx.fillStyle = gc.bg;
+    ctx.fill();
+    ctx.fillStyle = gc.fg;
+    ctx.fillText(pillText, cx, 718);
+
+    // 철분 mg (계산된 값 그대로)
+    ctx.fillStyle = '#dc2626';
+    const ironText = fitCardText(ctx, `🩸 철분 ${formatPretty(s.totals.iron)}mg (1끼 목표 대비 ${s.ironPct}%)`, 'bold', 50, 34, 820);
+    ctx.fillText(ironText, cx, 812);
+
+    // 하단 워터마크 + 면책
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = `34px ${SHARE_CARD_FONT}`;
+    ctx.fillText('agihanki-calculator.pages.dev', cx, 952);
+    ctx.fillStyle = '#a8a29e';
+    ctx.font = `26px ${SHARE_CARD_FONT}`;
+    ctx.fillText('교육·참고용 추정치 · 의료 상담을 대체하지 않습니다', cx, 1006);
+
+    return canvas;
+  }
+
+  function flashButton(btn, msg) {
+    if (!btn) return;
+    const orig = btn.textContent;
+    btn.textContent = msg;
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  }
+
+  function downloadBlob(blob, fileName) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function shareResultImage() {
+    const s = lastCalcSnapshot;
+    if (!s) return;
+    const btn = $('#share-image-btn');
+    try {
+      const canvas = buildShareCardCanvas(s);
+      const blob = await new Promise((resolve, reject) =>
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png'));
+      const now = new Date();
+      const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+      const fileName = `agihanki_${stamp}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: '아기한끼 계산 결과',
+            text: `[아기한끼] ${s.name} — 1끼 ${formatPretty(s.totalGrams)}g · 철분 ${formatPretty(s.totals.iron)}mg`,
+          });
+          flashButton(btn, '✓ 공유됨');
+          return;
+        } catch (err) {
+          if (err && err.name === 'AbortError') return; // 사용자가 공유 취소
+          // 공유 실패 시 다운로드 폴백으로 진행
+        }
+      }
+      downloadBlob(blob, fileName);
+      flashButton(btn, '✓ 저장됨');
+    } catch (_) {
+      flashButton(btn, '⚠ 실패');
+    }
+  }
+
   function saveRecent() {
     const entry = {
       name: $('#recipe-name')?.value || '레시피',
@@ -1228,6 +1424,7 @@
     $('#calc-btn')?.addEventListener('click', () => { calculate(); saveRecent(); });
     $('#copy-result-btn')?.addEventListener('click', copyResult);
     $('#print-result-btn')?.addEventListener('click', printResult);
+    $('#share-image-btn')?.addEventListener('click', shareResultImage);
     $('#cube-btn')?.addEventListener('click', () => {
       const gramsEl = els.resultSummary?.querySelector('[data-meal-grams]');
       const grams = gramsEl
