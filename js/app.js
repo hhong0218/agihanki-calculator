@@ -555,6 +555,7 @@
         },
         options: {
           responsive: true,
+          animation: false,
           plugins: {
             legend: { position: 'bottom' },
             tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${Math.round(ctx.raw/total*100)}%` } },
@@ -669,6 +670,7 @@
       const ironNeeds = getIronNeedsForAge(age, weightKg);
       const ironPct = rec.iron > 0 ? Math.round(totals.iron / rec.iron * 100) : 0;
       const absPct = rec.iron > 0 ? Math.round(absorbedIron / rec.iron * 100) : 0;
+      const ironDeficit = Math.max(0, rec.iron - totals.iron);
       els.ironHighlight.innerHTML = `
         <div class="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-5 border-2 border-red-200">
           <h3 class="font-bold text-red-800 text-lg mb-2">🩸 1끼 철분 분석</h3>
@@ -685,6 +687,24 @@
               ${hasInhibitor ? '<p class="mt-1 text-amber-700 font-medium">⚠ 칼슘/우유 성분 포함 → 철 흡수 저해 가능</p>' : ''}
             </div>
           </div>
+          ${totals.iron >= rec.iron
+            ? `<div class="mt-3 pt-3 border-t border-green-200">
+                 <p class="font-semibold text-green-800 text-sm">✓ 1끼 철분 목표(${rec.iron}mg)를 충족했어요. 비타민C 과일을 곁들이면 흡수가 더 좋아집니다.</p>
+               </div>`
+            : `<div class="mt-3 pt-3 border-t border-red-200">
+                 <p class="font-semibold text-red-800 mb-2 text-sm">🔻 1끼 목표보다 철분이 ${formatPretty(ironDeficit)}mg 부족 — 이렇게 보충하세요</p>
+                 <ul class="text-sm space-y-1 text-gray-700 leading-relaxed">
+                   <li>① <strong>소고기 다짐육 약 ${Math.ceil(ironDeficit / 2.6 * 100)}g</strong> 추가 — 헴철 2.6mg/100g, 흡수율이 가장 높은 1순위 식품</li>
+                   <li>② 또는 <strong>달걀 노른자 약 ${Math.ceil(ironDeficit / 4.85 * 100)}g</strong> (4.85mg/100g, 7개월 이후 소량·알레르기 관찰)</li>
+                   <li>③ ${hasVitC
+                        ? '<span class="text-green-700 font-medium">비타민C 과일이 이미 포함돼 흡수에 도움 ✓</span>'
+                        : '<strong>비타민C 과일</strong>(키위·딸기·브로콜리·파프리카)을 곁들이면 비헴철 흡수율이 약 3배로 상승'}</li>
+                   ${hasInhibitor
+                      ? '<li>④ <span class="text-amber-700 font-medium">우유·치즈·두유는 철 흡수를 방해하니 이 끼니와 1~2시간 간격을 두세요</span></li>'
+                      : '<li>④ 우유·치즈는 철 흡수를 방해하니 철분 끼니와 시간 간격을 두는 것이 좋아요</li>'}
+                 </ul>
+                 <p class="text-xs text-gray-400 mt-2">※ 철분 함량은 농촌진흥청 국가표준식품성분표 기준. 보충량은 함량 목표 기준 추정치이며, 실제 필요량은 소아과 상담을 권장합니다.</p>
+               </div>`}
         </div>`;
     }
 
