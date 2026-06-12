@@ -780,7 +780,7 @@
     els.growthResult.innerHTML = `
       <div class="bg-white rounded-2xl p-6 border border-orange-100">
         <h3 class="font-bold text-lg mb-3">📈 우리 아이 성장 추정</h3>
-        <p class="text-sm text-gray-500 mb-3">2017 소아청소년 성장도표(질병관리청) · 체중·신장 백분위</p>
+        <p class="text-sm text-gray-500 mb-3">질병관리청 소아청소년 성장도표(2017, 현행 최신판) · 체중·신장 백분위</p>
         <div class="grid sm:grid-cols-3 gap-4">
           <div class="bg-orange-50/50 rounded-xl p-4 border border-orange-100">
             <p class="text-sm text-gray-600">체중 <strong>${weight || '—'}kg</strong> ${gd ? `<span class="text-xs text-gray-400">(P50 ${gd.p50}kg)</span>` : ''}</p>
