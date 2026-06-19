@@ -1097,7 +1097,7 @@
       `흡수 추정 철분: ${formatPretty(s.absorbedIron)}mg (${s.absPct}%) · ${s.grade}`,
       '재료:',
       ...s.items.map((it) => `  - ${it.name}: ${formatPretty(it.grams)}g (철 ${formatPretty(it.iron)}mg)`),
-      'https://agihanki-calculator.pages.dev/',
+      'https://agihanki.matchiq.co.kr/',
     ];
     return lines.join('\n');
   }
@@ -1257,7 +1257,7 @@
     // 하단 워터마크 + 면책
     ctx.fillStyle = '#9ca3af';
     ctx.font = `34px ${SHARE_CARD_FONT}`;
-    ctx.fillText('agihanki-calculator.pages.dev', cx, 952);
+    ctx.fillText('agihanki.matchiq.co.kr', cx, 952);
     ctx.fillStyle = '#a8a29e';
     ctx.font = `26px ${SHARE_CARD_FONT}`;
     ctx.fillText('교육·참고용 추정치 · 의료 상담을 대체하지 않습니다', cx, 1006);

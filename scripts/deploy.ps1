@@ -9,6 +9,6 @@ npx wrangler pages deploy . --project-name=agihanki-calculator --branch=main --c
 
 if ($LASTEXITCODE -eq 0) {
   Write-Host ""
-  Write-Host "Live: https://agihanki-calculator.pages.dev" -ForegroundColor Green
+  Write-Host "Live: https://agihanki.matchiq.co.kr" -ForegroundColor Green
   Write-Host "Git:  https://github.com/hhong0218/agihanki-calculator" -ForegroundColor Green
 }

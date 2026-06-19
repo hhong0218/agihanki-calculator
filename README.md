@@ -6,7 +6,7 @@
 
 | 항목 | URL |
 |------|-----|
-| 라이브 | https://agihanki-calculator.pages.dev |
+| 라이브 | https://agihanki.matchiq.co.kr |
 | GitHub | https://github.com/hhong0218/agihanki-calculator |
 
 ## 다른 PC에서 이어하기
