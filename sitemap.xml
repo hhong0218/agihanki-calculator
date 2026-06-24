@@ -49,6 +49,48 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://agihanki.matchiq.co.kr/guide/start-4months</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agihanki.matchiq.co.kr/guide/foods-6months</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agihanki.matchiq.co.kr/guide/foods-9months</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agihanki.matchiq.co.kr/guide/carrot</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agihanki.matchiq.co.kr/guide/sweetpotato</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agihanki.matchiq.co.kr/guide/dev-4months</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://agihanki.matchiq.co.kr/guide/dev-6months</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://agihanki.matchiq.co.kr/about</loc>
     <lastmod>2026-06-11</lastmod>
     <changefreq>yearly</changefreq>
