@@ -5,6 +5,17 @@
 (function () {
   'use strict';
 
+  // 전환 계측 정상화: 실사용자 입력/클릭 후 + 버스트당 1회만 agihanki_calc 발화 (페이지로드/입력 부풀림 방지)
+  var __ac_acted = false, __ac_t = null;
+  document.addEventListener('input', function(){ __ac_acted = true; }, true);
+  document.addEventListener('change', function(){ __ac_acted = true; }, true);
+  document.addEventListener('click', function(){ __ac_acted = true; }, true);
+  function __fireAgihankiCalc(){
+    if (!__ac_acted || typeof gtag !== "function") return;
+    clearTimeout(__ac_t);
+    __ac_t = setTimeout(function(){ try { gtag("event", "agihanki_calc", {}); } catch(e){} }, 1200);
+  }
+
   /**
    * 월령별 참고치. perMeal/kcalDaily/kcalPerMeal = 이유식(고형식) 몫에 대한
    * 본 계산기의 자체 정리 참고치 (2025 한국인 영양소 섭취기준의 일일 총
@@ -738,7 +749,7 @@
     renderMacroChart(totals.protein, totals.carbs, totals.fat);
     renderProgressBars(totals, rec);
     els.resultSection?.classList.remove('hidden');
-    if (typeof gtag === 'function') { gtag('event', 'agihanki_calc', { }); }
+    __fireAgihankiCalc();
     saveFormState();
   }
 
