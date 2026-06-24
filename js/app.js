@@ -738,6 +738,7 @@
     renderMacroChart(totals.protein, totals.carbs, totals.fat);
     renderProgressBars(totals, rec);
     els.resultSection?.classList.remove('hidden');
+    if (typeof gtag === 'function') { gtag('event', 'agihanki_calc', { }); }
     saveFormState();
   }
 
